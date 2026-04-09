@@ -1,0 +1,36 @@
+{
+  "default_researcher": "Buck, John R",
+  "asset_mode": "presentation",
+  "paused": false,
+  "stats": {
+    "enqueued": 1061,
+    "processed": 737,
+    "errors": 0
+  },
+  "dedupe": {
+    "seen": {},
+    "max": 2000
+  },
+  "additional_topics": {
+    "1422406869070254180": [
+      "Signal Processing",
+      "Underwater Acoustics",
+      "Marine Science",
+      "Signals and Systems",
+      "Electrical Engineering or Electronics"
+    ]
+  },
+  "auto_fill_authors": true,
+  "author_add_delay_ms": 500,
+  "known_researchers": [
+    "Chang, W. Joseph",
+    "Rillahan, Christopher B",
+    "Valova, Iren",
+    "Gendron, Paul",
+    "Zavell, Max",
+    "Soltanisehat, Leili",
+    "Beardsley, Ashley",
+    "Buck, John R"
+  ],
+  "auto_restart_interval": 7
+}

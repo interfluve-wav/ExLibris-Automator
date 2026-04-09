@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ExLibris Automator Matcher</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .nav-links {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin: 0 5px;
+            transition: background 0.2s;
+        }
+        .nav-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .nav-logs-wrap { position: relative; display: inline-block; }
+        .nav-logs-trigger {
+            font: inherit;
+            cursor: pointer;
+            border: none;
+            color: white;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin: 0;
+            width: auto;
+        }
+        .nav-logs-trigger:hover { background: rgba(255,255,255,0.3); }
+        .nav-logs-menu {
+            display: none;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 100%;
+            margin-top: 8px;
+            background: white;
+            color: #333;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            min-width: 210px;
+            z-index: 50;
+            padding: 6px 0;
+            text-align: left;
+        }
+        .nav-logs-wrap.is-open .nav-logs-menu { display: block; }
+        .nav-logs-item {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 10px 16px;
+            border: none;
+            background: none;
+            font-size: 14px;
+            cursor: pointer;
+            color: #333;
+        }
+        .nav-logs-item:hover { background: #f0f0f0; }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .file-upload {
+            border: 2px dashed #ddd;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+        }
+        .results-area {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+        .match-item {
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 4px solid #28a745;
+            font-size: 13px;
+        }
+        .action-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Citation Matcher</h1>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Control Panel</a>
+                <a href="/matcher" class="nav-link" style="background: rgba(255,255,255,0.4);">Citation Matcher</a>
+                <div class="nav-logs-wrap" id="logsDropdownWrap">
+                    <button type="button" class="nav-logs-trigger" id="logsTrigger" aria-expanded="false" aria-haspopup="true" onclick="toggleLogsMenu(event)">Logs ▾</button>
+                    <div class="nav-logs-menu" id="logsMenu" role="menu">
+                        <button type="button" class="nav-logs-item" role="menuitem" onclick="openLogModal('discord'); closeLogsMenu();">Discord Bot</button>
+                        <button type="button" class="nav-logs-item" role="menuitem" onclick="openLogModal('worker'); closeLogsMenu();">Citation Filler</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content">
+            <div class="section">
+                <div class="section-title">1. Enter Search Text</div>
+                <textarea id="searchText" placeholder="Enter citation text to find matches for..."></textarea>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">2. Upload Source File</div>
+                <div class="file-upload">
+                    <input type="file" id="sourceFile" accept=".pdf,.doc,.docx,.xlsx,.xls,.txt">
+                    <div style="font-size: 12px; color: #666; margin-top: 5px;">Supports PDF, Word (DOC/DOCX), Excel, Text</div>
+                </div>
+                <button onclick="findMatches()">Find Matches</button>
+            </div>
+            
+            <div id="resultsArea" class="results-area">
+                <div class="section-title">Matches Found: <span id="matchCount">0</span></div>
+                <textarea id="matchesOutput" readonly style="min-height: 300px; background-color: white; color: #333; cursor: text;"></textarea>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="addToControlPanel()" class="action-btn" style="background: #6f42c1;">Add to Control Panel</button>
+                    <button onclick="copyToClipboard()" class="action-btn" style="background: #28a745;">Copy to Clipboard</button>
+                    <button onclick="downloadMatches()" class="action-btn" id="downloadBtn" style="background: #17a2b8;">Download .txt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log viewer modal -->
+    <div id="logModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;" onclick="if (event.target === this) closeLogModal();">
+        <div style="background: white; padding: 24px; border-radius: 12px; max-width: 720px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; margin: 20px;" onclick="event.stopPropagation();">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px;">
+                <h2 id="logModalTitle" style="font-size: 1.25rem; margin: 0;">Logs</h2>
+                <button type="button" onclick="closeLogModal()" style="background: #dc3545; color: white; border: none; border-radius: 8px; padding: 6px 14px; cursor: pointer; flex-shrink: 0;">Close</button>
+            </div>
+            <p id="logModalHint" style="font-size: 13px; color: #555; margin-bottom: 10px; display: none; line-height: 1.4;"></p>
+            <pre id="logModalBody" style="flex: 1; min-height: 200px; max-height: 55vh; overflow: auto; background: #1e1e1e; color: #d4d4d4; padding: 12px; border-radius: 8px; font-size: 12px; white-space: pre-wrap; word-break: break-word; margin: 0;"></pre>
+            <button type="button" onclick="refreshLogs()" style="margin-top: 12px; width: 100%;">Refresh</button>
+        </div>
+    </div>
+
+    <script>
+        let currentMatches = [];
+        let currentLogKind = 'discord';
+
+        function closeLogsMenu() {
+            const w = document.getElementById('logsDropdownWrap');
+            const t = document.getElementById('logsTrigger');
+            if (w) w.classList.remove('is-open');
+            if (t) t.setAttribute('aria-expanded', 'false');
+        }
+
+        function toggleLogsMenu(e) {
+            e.stopPropagation();
+            const w = document.getElementById('logsDropdownWrap');
+            const t = document.getElementById('logsTrigger');
+            if (!w || !t) return;
+            const open = !w.classList.contains('is-open');
+            w.classList.toggle('is-open', open);
+            t.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        function openLogModal(kind) {
+            currentLogKind = kind;
+            const title = kind === 'discord' ? 'Discord Bot logs' : 'Citation Filler logs';
+            const el = document.getElementById('logModalTitle');
+            if (el) el.textContent = title;
+            const modal = document.getElementById('logModal');
+            if (modal) modal.style.display = 'flex';
+            refreshLogs();
+        }
+
+        function closeLogModal() {
+            const modal = document.getElementById('logModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function refreshLogs() {
+            const body = document.getElementById('logModalBody');
+            const hintEl = document.getElementById('logModalHint');
+            if (!body) return;
+            body.textContent = 'Loading…';
+            if (hintEl) {
+                hintEl.style.display = 'none';
+                hintEl.textContent = '';
+            }
+            fetch('/api/logs?kind=' + encodeURIComponent(currentLogKind))
+                .then(r => r.json())
+                .then(data => {
+                    body.textContent = (data.text !== undefined && data.text !== null) ? data.text : (data.error || '(no data)');
+                    if (hintEl && data.hint) {
+                        hintEl.textContent = data.hint;
+                        hintEl.style.display = 'block';
+                    }
+                })
+                .catch(err => {
+                    body.textContent = 'Request failed: ' + err.message;
+                });
+        }
+
+        document.addEventListener('click', function () { closeLogsMenu(); });
+        document.getElementById('logsDropdownWrap')?.addEventListener('click', function (e) { e.stopPropagation(); });
+
+        function findMatches() {
+            const text = document.getElementById('searchText').value.trim();
+            const fileInput = document.getElementById('sourceFile');
+            
+            if (!text) {
+                alert('Please enter search text');
+                return;
+            }
+            if (fileInput.files.length === 0) {
+                alert('Please select a file');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('text', text);
+            formData.append('file', fileInput.files[0]);
+
+            const btn = document.querySelector('button');
+            const originalText = btn.textContent;
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
+
+            fetch('/api/match_citations', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+                
+                if (data.success) {
+                    displayMatches(data.matches);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(err => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+                alert('Error: ' + err.message);
+            });
+        }
+
+        function displayMatches(matches) {
+            currentMatches = matches;
+            const resultsArea = document.getElementById('resultsArea');
+            const matchesOutput = document.getElementById('matchesOutput');
+            const countSpan = document.getElementById('matchCount');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
+            resultsArea.style.display = 'block';
+            countSpan.textContent = matches.length;
+            
+            if (matches.length === 0) {
+                matchesOutput.value = "No matches found.";
+                downloadBtn.style.display = 'none';
+            } else {
+                // Join with double newline for blank line between citations
+                matchesOutput.value = matches.join('\n\n');
+                downloadBtn.style.display = 'inline-block';
+            }
+        }
+
+        function addToControlPanel() {
+            const matchesOutput = document.getElementById('matchesOutput');
+            const text = matchesOutput.value;
+            
+            if (!text || text === "No matches found.") {
+                alert("No matches to add.");
+                return;
+            }
+            
+            localStorage.setItem('pendingCitations', text);
+            window.location.href = "/";
+        }
+
+        function copyToClipboard() {
+            const matchesOutput = document.getElementById('matchesOutput');
+            matchesOutput.select();
+            document.execCommand('copy');
+            
+            // Visual feedback
+            const originalText = matchesOutput.value;
+            // matchesOutput.value = "Copied!";
+            // setTimeout(() => {
+            //     matchesOutput.value = originalText;
+            // }, 1000);
+            
+            // Better feedback via button
+            const btn = document.querySelector('button[onclick="copyToClipboard()"]');
+            const originalLabel = btn.textContent;
+            btn.textContent = "Copied!";
+            setTimeout(() => {
+                btn.textContent = originalLabel;
+            }, 1500);
+        }
+
+        function downloadMatches() {
+            if (currentMatches.length === 0) return;
+            
+            const content = currentMatches.join('\n\n');
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'matches.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

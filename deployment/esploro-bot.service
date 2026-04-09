@@ -1,0 +1,49 @@
+[Unit]
+Description=Esploro Citation Automation Bot
+After=network-online.target
+Wants=network-online.target
+Documentation=https://github.com/interfluve-wav/esp---warp
+
+[Service]
+Type=simple
+User=espbot
+Group=espbot
+WorkingDirectory=/opt/esploro-bot
+Environment="PATH=/opt/esploro-bot/.venv/bin:/usr/local/bin:/usr/bin:/bin"
+EnvironmentFile=/opt/esploro-bot/.env
+
+# Main service execution
+ExecStart=/opt/esploro-bot/.venv/bin/python3 /opt/esploro-bot/discord_bot_batch_smart.py
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/esploro-bot/logs /opt/esploro-bot/data
+ReadOnlyPaths=/opt/esploro-bot
+
+# Resource limits
+LimitNOFILE=4096
+LimitNPROC=512
+MemoryLimit=2G
+CPUQuota=200%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=esploro-bot
+
+# Graceful shutdown
+TimeoutStopSec=30
+KillMode=mixed
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target
