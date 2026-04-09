@@ -222,7 +222,7 @@ def get_sync(self, key: str):
 
 ## 💡 Summary
 
-**Before**: Basic bot with manual deployment and security concerns  
+**Before**: Basic bot with manual deployment and security concerns
 **After**: Production-ready system with automated deployment, monitoring, and security
 
 **Result**: Ready to ship with confidence! 🚀

@@ -46,10 +46,10 @@ def print_error(text):
 def check_python_version():
     """Check if Python version meets requirements."""
     print_header("Python Version Check")
-    
+
     major, minor = sys.version_info[:2]
     version_str = f"{major}.{minor}"
-    
+
     if major >= 3 and minor >= 10:
         print_success(f"Python {version_str} (meets requirement: 3.10+)")
         return True
@@ -61,29 +61,29 @@ def check_python_version():
 def check_environment_variables():
     """Check required environment variables."""
     print_header("Environment Variables Check")
-    
+
     required = {
         'OPENAI_API_KEY': 'OpenAI API key',
         'ESPLORO_USERNAME': 'Esploro username',
         'ESPLORO_PASSWORD': 'Esploro password',
         'DISCORD_BOT_TOKEN': 'Discord bot token',
     }
-    
+
     recommended = {
         'CITATION_PARSER': 'Citation parser (should be "openai")',
         'OPENAI_MODEL': 'OpenAI model (default: gpt-4o-mini)',
         'HEADLESS': 'Browser headless mode (1 for production)',
         'LOG_LEVEL': 'Logging level (INFO recommended)',
     }
-    
+
     optional = {
         'CITATION_CHANNEL_ID': 'Restrict to single channel',
         'DISCORD_GUILD_ID': 'For fast slash command sync',
         'DEFAULT_RESEARCHER': 'Default researcher name',
     }
-    
+
     all_valid = True
-    
+
     # Check required
     print(f"{Colors.BOLD}Required Variables:{Colors.RESET}")
     for var, description in required.items():
@@ -95,7 +95,7 @@ def check_environment_variables():
         else:
             print_error(f"{var}: NOT SET ({description})")
             all_valid = False
-    
+
     # Check recommended
     print(f"\n{Colors.BOLD}Recommended Variables:{Colors.RESET}")
     for var, description in recommended.items():
@@ -104,7 +104,7 @@ def check_environment_variables():
             print_success(f"{var}: {value} ({description})")
         else:
             print_warning(f"{var}: not set ({description})")
-    
+
     # Check optional
     print(f"\n{Colors.BOLD}Optional Variables:{Colors.RESET}")
     for var, description in optional.items():
@@ -113,14 +113,14 @@ def check_environment_variables():
             print_success(f"{var}: {value} ({description})")
         else:
             print(f"  {var}: not set ({description})")
-    
+
     return all_valid
 
 
 def check_dependencies():
     """Check if required Python packages are installed."""
     print_header("Python Dependencies Check")
-    
+
     required_packages = [
         'playwright',
         'dotenv',
@@ -129,9 +129,9 @@ def check_dependencies():
         'openai',
         'discord',
     ]
-    
+
     all_installed = True
-    
+
     for package in required_packages:
         try:
             __import__(package)
@@ -145,10 +145,10 @@ def check_dependencies():
         except ImportError:
             print_error(f"{package}: NOT INSTALLED")
             all_installed = False
-    
+
     if not all_installed:
         print_warning("\nInstall missing packages with: pip install -r requirements.txt")
-    
+
     return all_installed
 
 
@@ -156,7 +156,7 @@ def check_playwright():
     """Check if Playwright is installed and browsers are available."""
     print_header("Playwright Browser Check")
     python_executable = sys.executable or 'python3'
-    
+
     try:
         result = subprocess.run(
             [python_executable, '-m', 'playwright', '--version'],
@@ -174,7 +174,7 @@ def check_playwright():
         print_error("Playwright: NOT INSTALLED")
         print_warning("Install with: python -m playwright install chromium")
         return False
-    
+
     # Check if chromium is installed
     try:
         result = subprocess.run(
@@ -198,21 +198,21 @@ def check_playwright():
 def check_files():
     """Check if required configuration files exist."""
     print_header("Configuration Files Check")
-    
+
     required_files = [
         'bot_config.json',
         'citations_config.json',
     ]
-    
+
     optional_files = [
         '.env',
         'requirements.txt',
         'discord_bot_batch_smart.py',
         'openai_parser.py',
     ]
-    
+
     all_exist = True
-    
+
     print(f"{Colors.BOLD}Required Files:{Colors.RESET}")
     for filename in required_files:
         if Path(filename).exists():
@@ -220,29 +220,29 @@ def check_files():
         else:
             print_error(f"{filename}: NOT FOUND")
             all_exist = False
-    
+
     print(f"\n{Colors.BOLD}Core Files:{Colors.RESET}")
     for filename in optional_files:
         if Path(filename).exists():
             print_success(f"{filename}: exists")
         else:
             print_warning(f"{filename}: not found")
-    
+
     return all_exist
 
 
 def check_directories():
     """Check if required directories exist and are writable."""
     print_header("Directory Permissions Check")
-    
+
     directories = [
         'logs',
         'automation',
         'utils',
     ]
-    
+
     all_valid = True
-    
+
     for dirname in directories:
         dirpath = Path(dirname)
         if dirpath.exists():
@@ -253,20 +253,20 @@ def check_directories():
                 all_valid = False
         else:
             print_warning(f"{dirname}/: does not exist (will be created)")
-    
+
     return all_valid
 
 
 def check_disk_space():
     """Check available disk space."""
     print_header("Disk Space Check")
-    
+
     try:
         stat = os.statvfs('.')
         available_gb = (stat.f_bavail * stat.f_frsize) / (1024 ** 3)
         total_gb = (stat.f_blocks * stat.f_frsize) / (1024 ** 3)
         used_percent = ((total_gb - available_gb) / total_gb) * 100
-        
+
         if available_gb > 10:
             print_success(f"Disk space: {available_gb:.1f} GB available ({used_percent:.1f}% used)")
             return True
@@ -290,7 +290,7 @@ def main():
     print("║     Esploro Citation Automation - Environment Validation          ║")
     print("╚════════════════════════════════════════════════════════════════════╝")
     print(Colors.RESET)
-    
+
     # Load .env if it exists
     if Path('.env').exists():
         try:
@@ -299,7 +299,7 @@ def main():
             print_success("Loaded environment variables from .env")
         except ImportError:
             print_warning("python-dotenv not installed, cannot load .env file")
-    
+
     # Run all checks
     checks = [
         ("Python Version", check_python_version),
@@ -310,7 +310,7 @@ def main():
         ("Directories", check_directories),
         ("Disk Space", check_disk_space),
     ]
-    
+
     results = {}
     for name, check_func in checks:
         try:
@@ -318,21 +318,21 @@ def main():
         except Exception as e:
             print_error(f"Check failed with exception: {e}")
             results[name] = False
-    
+
     # Summary
     print_header("Validation Summary")
-    
+
     passed = sum(1 for v in results.values() if v)
     total = len(results)
-    
+
     for name, result in results.items():
         if result:
             print_success(f"{name}: PASSED")
         else:
             print_error(f"{name}: FAILED")
-    
+
     print(f"\n{Colors.BOLD}Results: {passed}/{total} checks passed{Colors.RESET}")
-    
+
     if passed == total:
         print(f"\n{Colors.GREEN}{Colors.BOLD}✓ All checks passed! Ready for deployment.{Colors.RESET}\n")
         return 0

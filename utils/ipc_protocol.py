@@ -15,34 +15,34 @@ class IPCProtocol:
     Centralized handler for all IPC communication patterns.
     Ensures consistent message format and asset type normalization across all components.
     """
-    
+
     # Message types
     REQUEST = "request"
     RESPONSE = "response"
-    
+
     def __init__(self, working_dir: Optional[str] = None):
         """
         Initialize IPC protocol handler.
-        
+
         Args:
             working_dir: Directory where control files are located (default: cwd)
         """
         self.working_dir = working_dir or os.getcwd()
-    
+
     # ===== Core Message Handling =====
-    
+
     @staticmethod
-    def create_message(msg_type: Literal["request", "response"], 
-                      operation: str, 
+    def create_message(msg_type: Literal["request", "response"],
+                      operation: str,
                       **kwargs) -> Dict[str, Any]:
         """
         Create a standardized message with timestamp and operation.
-        
+
         Args:
             msg_type: Either "request" or "response"
             operation: Operation name (e.g., "add_citation", "set_asset_type")
             **kwargs: Additional data fields
-            
+
         Returns:
             Dictionary with standardized message structure
         """
@@ -53,20 +53,20 @@ class IPCProtocol:
         }
         message.update(kwargs)
         return message
-    
+
     @staticmethod
     def is_response(data: Dict[str, Any]) -> bool:
         """Check if a message is a response (has 'success' or 'type'='response')."""
         return "success" in data or data.get("type") == IPCProtocol.RESPONSE
-    
+
     def write_message(self, filename: str, data: Dict[str, Any]) -> bool:
         """
         Write a message to a control file.
-        
+
         Args:
             filename: Name of the file to write
             data: Message data dictionary
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -77,14 +77,14 @@ class IPCProtocol:
             return True
         except Exception:
             return False
-    
+
     def read_message(self, filename: str) -> Optional[Dict[str, Any]]:
         """
         Read a message from a control file.
-        
+
         Args:
             filename: Name of the file to read
-            
+
         Returns:
             Message data dictionary, or None if file doesn't exist or is invalid
         """
@@ -96,7 +96,7 @@ class IPCProtocol:
                 return json.load(f)
         except Exception:
             return None
-    
+
     def remove_file(self, filename: str) -> bool:
         """Remove a control file."""
         try:
@@ -106,17 +106,17 @@ class IPCProtocol:
             return True
         except Exception:
             return False
-    
-    def wait_for_response(self, filename: str, timeout: float = 5.0, 
+
+    def wait_for_response(self, filename: str, timeout: float = 5.0,
                          poll_interval: float = 0.2) -> Optional[Dict[str, Any]]:
         """
         Wait for a response file to be written by checking for 'success' field.
-        
+
         Args:
             filename: Name of the file to monitor
             timeout: Maximum wait time in seconds
             poll_interval: How often to check for updates (seconds)
-            
+
         Returns:
             Response data if received within timeout, None otherwise
         """
@@ -127,18 +127,18 @@ class IPCProtocol:
                 return data
             time.sleep(poll_interval)
         return None
-    
+
     # ===== Asset Type Normalization =====
-    
+
     @staticmethod
     def normalize_asset_type_input(asset_type: str, source: str = "user") -> str:
         """
         Normalize asset type from any source.
-        
+
         Args:
             asset_type: Raw asset type string
             source: Source of the asset type ("user", "parser", "config")
-            
+
         Returns:
             Normalized asset type suitable for the target context
         """
@@ -151,7 +151,7 @@ class IPCProtocol:
         else:  # user input
             # User input could be anything -> normalize to config mode
             return normalize_config_mode(asset_type)
-    
+
     @staticmethod
     def asset_type_to_worker_format(asset_type: str) -> str:
         """
@@ -159,7 +159,7 @@ class IPCProtocol:
         Worker uses the same format as config modes.
         """
         return normalize_config_mode(asset_type)
-    
+
     @staticmethod
     def asset_type_to_display(asset_type: str) -> str:
         """Convert asset type to human-readable display format."""
@@ -175,17 +175,17 @@ class IPCProtocol:
         }
         normalized = normalize_config_mode(asset_type)
         return type_map.get(normalized, normalized.replace("_", " ").title())
-    
+
     # ===== High-Level Operations =====
-    
-    def send_citation_to_worker(self, channel_id: int, citation_text: str, 
+
+    def send_citation_to_worker(self, channel_id: int, citation_text: str,
                                asset_type: str, researcher: str,
                                citation_id: str, message_id: int, author: str,
                                parsed_data: Optional[Dict] = None) -> bool:
         """
         Send a citation to the worker for processing.
         Normalizes asset type before sending.
-        
+
         Args:
             channel_id: Discord channel ID
             citation_text: Citation text to process
@@ -195,13 +195,13 @@ class IPCProtocol:
             message_id: Discord message ID
             author: Author who submitted the citation
             parsed_data: Optional pre-parsed citation data
-            
+
         Returns:
             True if message was sent successfully
         """
         control_file = f"citation_control_{channel_id}.json"
         normalized_type = self.asset_type_to_worker_format(asset_type)
-        
+
         data = {
             "text": citation_text,
             "asset_type": normalized_type,
@@ -211,114 +211,114 @@ class IPCProtocol:
             "researcher": researcher,
             "parsed": parsed_data
         }
-        
+
         return self.write_message(control_file, data)
-    
+
     def read_worker_status(self, channel_id: int) -> Optional[Dict[str, Any]]:
         """Read status from worker."""
         status_file = f"citation_status_{channel_id}.json"
         return self.read_message(status_file)
-    
+
     def send_gui_request(self, operation: str, **kwargs) -> bool:
         """
         Send a request from GUI to bot.
         Asset types are automatically normalized if present.
-        
+
         Args:
             operation: Operation name
             **kwargs: Additional request parameters
-            
+
         Returns:
             True if request was sent successfully
         """
         # Normalize asset_type if present
         if "asset_type" in kwargs:
             kwargs["asset_type"] = normalize_config_mode(kwargs["asset_type"])
-        
+
         filename = f"gui_{operation}.json"
         data = self.create_message(self.REQUEST, operation, **kwargs)
         return self.write_message(filename, data)
-    
+
     def read_gui_response(self, operation: str, timeout: float = 5.0) -> Optional[Dict[str, Any]]:
         """
         Read response from bot for a GUI request.
-        
+
         Args:
             operation: Operation name
             timeout: Maximum wait time in seconds
-            
+
         Returns:
             Response data or None if timeout
         """
         filename = f"gui_{operation}.json"
         return self.wait_for_response(filename, timeout=timeout)
-    
+
     def send_gui_response(self, operation: str, success: bool, **kwargs) -> bool:
         """
         Send a response from bot to GUI.
-        
+
         Args:
             operation: Operation name
             success: Whether the operation succeeded
             **kwargs: Additional response data
-            
+
         Returns:
             True if response was sent successfully
         """
         filename = f"gui_{operation}.json"
         data = self.create_message(self.RESPONSE, operation, success=success, **kwargs)
         return self.write_message(filename, data)
-    
+
     # ===== Specific Operations =====
-    
+
     def gui_add_citation(self, text: str, asset_type: Optional[str] = None) -> Dict[str, Any]:
         """
         GUI sends request to add a citation.
-        
+
         Returns:
             Response dict with success status
         """
         request_data = {"text": text}
         if asset_type:
             request_data["asset_type"] = normalize_config_mode(asset_type)
-        
+
         if not self.write_message("gui_add_citation.json", request_data):
             return {"success": False, "error": "Failed to write request"}
-        
+
         response = self.wait_for_response("gui_add_citation.json", timeout=5.0)
         if response:
             self.remove_file("gui_add_citation.json")
             return response
         return {"success": False, "error": "Timeout waiting for response"}
-    
+
     def gui_set_asset_type(self, asset_type: str) -> Dict[str, Any]:
         """
         GUI sends request to set asset type.
         Automatically normalizes the asset type.
-        
+
         Returns:
             Response dict with success status
         """
         normalized = normalize_config_mode(asset_type)
-        
+
         if not self.write_message("gui_set_asset_type.json", {"asset_type": normalized}):
             return {"success": False, "error": "Failed to write request"}
-        
+
         response = self.wait_for_response("gui_set_asset_type.json", timeout=5.0)
         if response:
             return response
         return {"success": False, "error": "Timeout waiting for response"}
-    
+
     def gui_set_researcher(self, researcher: str) -> Dict[str, Any]:
         """
         GUI sends request to set researcher.
-        
+
         Returns:
             Response dict with success status
         """
         if not self.write_message("gui_set_researcher.json", {"researcher": researcher}):
             return {"success": False, "error": "Failed to write request"}
-        
+
         response = self.wait_for_response("gui_set_researcher.json", timeout=5.0)
         if response:
             return response

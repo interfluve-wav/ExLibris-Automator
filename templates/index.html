@@ -828,7 +828,7 @@
                 <div id="addMessage" class="message"></div>
                 <div class="hint">💡 Press <kbd>Ctrl+A</kbd> to focus citation field</div>
             </div>
-            
+
             <div class="section">
                 <div class="section-title">Controls</div>
                 <div class="sticky-actions">
@@ -843,14 +843,14 @@
                     </div>
                     <div class="hint">💡 Press <kbd>Ctrl+F</kbd> to fill next citation</div>
                 </div>
-                
+
                 <div class="button-grid">
                     <button onclick="viewQueue()" class="btn-secondary">View Queue</button>
                     <button onclick="clearQueue()" class="btn-warning">Clear Queue</button>
                     <button id="pauseResumeBtn" onclick="togglePause()" class="btn-neutral">Pause</button>
                     <button onclick="skipCurrent()" class="btn-accent">Skip Current</button>
                 </div>
-                
+
                 <div class="settings-card">
                     <div class="settings-title">Set Researcher</div>
                     <div class="settings-row form-row">
@@ -862,7 +862,7 @@
                     </div>
                     <div id="researcherMessage" class="message mt-10"></div>
                 </div>
-                
+
                 <div class="settings-card">
                     <div class="settings-title">Set Asset Type</div>
                     <div class="settings-row form-row">
@@ -883,7 +883,7 @@
                     </div>
                     <div id="assetTypeMessage" class="message mt-10"></div>
                 </div>
-                
+
                 <div class="settings-card">
                     <div class="settings-title">Author Automation</div>
                     <div class="settings-subtitle">Automatically fill creators/authors from citations</div>
@@ -906,7 +906,7 @@
                     <div id="authorAddDelayMessage" class="message mt-10"></div>
                     <div id="autoFillAuthorsMessage" class="message mt-10"></div>
                 </div>
-                
+
                 <div class="settings-card">
                     <div class="settings-title collapsible-toggle" onclick="toggleCard('autoRestartBody', 'autoRestartToggle')">
                         <span>Auto-Restart (Memory Management)</span>
@@ -929,7 +929,7 @@
                     </div>
                     <div id="autoRestartMessage" class="message mt-10"></div>
                 </div>
-                
+
                 <div class="settings-card">
                     <div class="settings-title collapsible-toggle" onclick="toggleStats()">
                         <span>📊 Detailed Stats</span>
@@ -950,7 +950,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="settings-card">
                     <div class="settings-title collapsible-toggle" onclick="toggleCard('topicsBody', 'topicsToggle')">
                         <span>Additional Topics (Description and Research)</span>
@@ -972,12 +972,12 @@
                     </div>
                     <div id="topicMessage" class="message mt-10"></div>
                 </div>
-                
+
                 <div class="close-bot-wrap">
                     <button onclick="closeBot()" class="close-bot-btn">Close Bot</button>
                 </div>
             </div>
-            
+
             <!-- Log viewer modal -->
             <div id="logModal" class="modal-overlay" onclick="if (event.target === this) closeLogModal();">
                 <div class="modal-shell log-modal-shell" onclick="event.stopPropagation();">
@@ -1004,7 +1004,7 @@
             </div>
         </div>
     </div>
-    
+
     <script>
         let statusCheckInterval;
         let currentLogKind = 'discord';
@@ -1123,10 +1123,10 @@
                     const queueInfo = document.getElementById('queueInfo');
                     const researcherInput = document.getElementById('researcherInput');
                     lastQueueSize = Number(data.queueSize || 0);
-                    
+
                     // Update status indicator
                     indicator.className = 'status-indicator ' + data.status;
-                    
+
                     // Update status text
                     const overrideActive = Date.now() < statusOverrideUntil;
                     if (overrideActive) {
@@ -1144,10 +1144,10 @@
                             statusChip.textContent = data.status;
                         }
                     }
-                    
+
                     // Update queue info
                     queueInfo.textContent = `Queue: ${data.queueSize} citation(s) | Processed: ${data.processed} | Enqueued: ${data.enqueued}`;
-                    
+
                     // Update detailed stats
                     document.getElementById('statProcessed').textContent = data.processed || 0;
                     document.getElementById('statEnqueued').textContent = data.enqueued || 0;
@@ -1177,7 +1177,7 @@
                     if (assetTypeSelect && data.assetMode && document.activeElement !== assetTypeSelect) {
                         assetTypeSelect.value = data.assetMode;
                     }
-                    
+
                     // Update additional topics in stats
                     const topics = data.additionalTopics || [];
                     const statTopics = document.getElementById('statTopics');
@@ -1186,22 +1186,22 @@
                     } else {
                         statTopics.textContent = 'None';
                     }
-                    
+
                     // Update topics list
                     updateTopicsList(topics);
-                    
+
                     // Update auto-fill authors checkbox
                     const autoFillCheckbox = document.getElementById('autoFillAuthorsCheckbox');
                     if (autoFillCheckbox && typeof data.autoFillAuthors !== 'undefined') {
                         autoFillCheckbox.checked = data.autoFillAuthors;
                     }
-                    
+
                     // Update author add delay dropdown
                     const authorDelaySelect = document.getElementById('authorAddDelaySelect');
                     if (authorDelaySelect && typeof data.authorAddDelayMs !== 'undefined') {
                         authorDelaySelect.value = String(data.authorAddDelayMs);
                     }
-                    
+
                     // Update auto-restart UI
                     const autoRestartCheckbox = document.getElementById('autoRestartCheckbox');
                     const autoRestartInput = document.getElementById('autoRestartInput');
@@ -1214,7 +1214,7 @@
                             autoRestartInput.disabled = !enabled;
                         }
                     }
-                    
+
                     // Update pause/resume button
                     const pauseResumeBtn = document.getElementById('pauseResumeBtn');
                     if (data.paused) {
@@ -1226,7 +1226,7 @@
                         pauseResumeBtn.classList.remove('btn-success');
                         pauseResumeBtn.classList.add('btn-neutral');
                     }
-                    
+
                     // Update fill button
                     if (data.status === 'ready' || data.status === 'completed') {
                         fillButton.disabled = false;
@@ -1246,14 +1246,14 @@
                 })
                 .catch(err => console.error('Status update error:', err));
         }
-        
+
         function addCitation() {
             const text = document.getElementById('citationText').value.trim();
             if (!text) {
                 showMessage('addMessage', 'Please enter a citation first.', 'error');
                 return;
             }
-            
+
             fetch('/api/add', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1274,7 +1274,7 @@
                     showMessage('addMessage', `❌ Error: ${err.message}`, 'error');
                 });
         }
-        
+
         function fillNext() {
             fetch('/api/fill', {method: 'POST'})
                 .then(r => r.json())
@@ -1289,7 +1289,7 @@
                     showMessage('addMessage', `❌ Error: ${err.message}`, 'error');
                 });
         }
-        
+
         function closeBot() {
             if (confirm('Are you sure you want to close the bot?')) {
                 fetch('/api/close', {method: 'POST'})
@@ -1302,14 +1302,14 @@
                     });
             }
         }
-        
+
         function viewQueue() {
             fetch('/api/queue')
                 .then(r => r.json())
                 .then(data => {
                     const modal = document.getElementById('queueModal');
                     const queueList = document.getElementById('queueList');
-                    
+
                     if (data.success && data.queue && data.queue.length > 0) {
                         queueList.innerHTML = '';
                         const meta = document.createElement('div');
@@ -1340,23 +1340,23 @@
                     } else {
                         queueList.innerHTML = '<div class="queue-empty">Queue is empty</div>';
                     }
-                    
+
                     modal.style.display = 'flex';
                 })
                 .catch(err => {
                     showMessage('addMessage', 'Error loading queue: ' + err.message, 'error');
                 });
         }
-        
+
         function closeQueueModal() {
             document.getElementById('queueModal').style.display = 'none';
         }
-        
+
         function clearQueue() {
             if (!confirm('Are you sure you want to clear all citations from the queue?')) {
                 return;
             }
-            
+
             fetch('/api/clear', {method: 'POST'})
                 .then(r => r.json())
                 .then(data => {
@@ -1371,11 +1371,11 @@
                     showMessage('addMessage', 'Error clearing queue: ' + err.message, 'error');
                 });
         }
-        
+
         function togglePause() {
             const btn = document.getElementById('pauseResumeBtn');
             const isPaused = btn.textContent === 'Resume';
-            
+
             const endpoint = isPaused ? '/api/resume' : '/api/pause';
             fetch(endpoint, {method: 'POST'})
                 .then(r => r.json())
@@ -1391,12 +1391,12 @@
                     showMessage('addMessage', 'Error: ' + err.message, 'error');
                 });
         }
-        
+
         function skipCurrent() {
             if (!confirm('Skip the current citation being processed?')) {
                 return;
             }
-            
+
             fetch('/api/skip', {method: 'POST'})
                 .then(r => r.json())
                 .then(data => {
@@ -1411,16 +1411,16 @@
                     showMessage('addMessage', 'Error skipping: ' + err.message, 'error');
                 });
         }
-        
+
         function setResearcher() {
             const input = document.getElementById('researcherInput');
             const researcher = input.value.trim();
-            
+
             if (!researcher) {
                 showMessage('researcherMessage', 'Please enter a researcher name', 'error');
                 return;
             }
-            
+
             fetch('/api/set_researcher', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1441,16 +1441,16 @@
                     showMessage('researcherMessage', 'Error: ' + err.message, 'error');
                 });
         }
-        
+
         function setAssetType() {
             const select = document.getElementById('assetTypeSelect');
             const assetType = select.value;
-            
+
             if (!assetType) {
                 showMessage('assetTypeMessage', 'Please select an asset type', 'error');
                 return;
             }
-            
+
             fetch('/api/set_asset_type', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1476,11 +1476,11 @@
                     showMessage('assetTypeMessage', 'Error: ' + err.message, 'error');
                 });
         }
-        
+
         function setAuthorAddDelay() {
             const select = document.getElementById('authorAddDelaySelect');
             const delayMs = parseInt(select.value, 10);
-            
+
             fetch('/api/set_author_add_delay', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1502,11 +1502,11 @@
                     showMessage('authorAddDelayMessage', 'Error: ' + err.message, 'error');
                 });
         }
-        
+
         function toggleAutoFillAuthors() {
             const checkbox = document.getElementById('autoFillAuthorsCheckbox');
             const enabled = checkbox.checked;
-            
+
             fetch('/api/toggle_auto_fill_authors', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1532,31 +1532,31 @@
                     checkbox.checked = !enabled;
                 });
         }
-        
+
         function toggleAutoRestart() {
             const checkbox = document.getElementById('autoRestartCheckbox');
             const input = document.getElementById('autoRestartInput');
             input.disabled = !checkbox.checked;
-            
+
             // Auto-save immediately when checkbox is toggled
             setAutoRestart();
-            
+
             if (checkbox.checked) {
                 input.focus();
             }
         }
-        
+
         function setAutoRestart() {
             const checkbox = document.getElementById('autoRestartCheckbox');
             const input = document.getElementById('autoRestartInput');
             const enabled = checkbox.checked;
             const interval = parseInt(input.value, 10);
-            
+
             if (enabled && (isNaN(interval) || interval < 1)) {
                 showMessage('autoRestartMessage', 'Please enter a valid number (>= 1)', 'error');
                 return;
             }
-            
+
             fetch('/api/set_restart_policy', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1580,7 +1580,7 @@
                     showMessage('autoRestartMessage', 'Error: ' + err.message, 'error');
                 });
         }
-        
+
         function toggleStats() {
             const stats = document.getElementById('detailedStats');
             const toggle = document.getElementById('statsToggle');
@@ -1608,44 +1608,44 @@
             uiState[contentId] = open;
             saveUiState(uiState);
         }
-        
+
         function updateTopicsList(topics) {
             const topicsList = document.getElementById('topicsList');
             if (topics.length === 0) {
                 topicsList.innerHTML = '<div class="topic-muted">No topics added yet</div>';
                 return;
             }
-            
+
             // Clear and rebuild list
             topicsList.innerHTML = '';
             topics.forEach((topic, index) => {
                 const div = document.createElement('div');
                 div.className = 'topic-row';
-                
+
                 const span = document.createElement('span');
                 span.className = 'topic-name';
                 span.textContent = (index + 1) + '. ' + topic;
-                
+
                 const btn = document.createElement('button');
                 btn.textContent = 'Remove';
                 btn.className = 'topic-remove-btn';
                 btn.onclick = function() { removeTopic(topic); };
-                
+
                 div.appendChild(span);
                 div.appendChild(btn);
                 topicsList.appendChild(div);
             });
         }
-        
+
         function addTopic() {
             const input = document.getElementById('topicInput');
             const topic = input.value.trim();
-            
+
             if (!topic) {
                 showMessage('topicMessage', 'Please enter a topic name', 'error');
                 return;
             }
-            
+
             fetch('/api/add_topic', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1666,12 +1666,12 @@
                     showMessage('topicMessage', 'Error: ' + err.message, 'error');
                 });
         }
-        
+
         function removeTopic(topic) {
             if (!confirm(`Remove topic "${topic}"?`)) {
                 return;
             }
-            
+
             fetch('/api/remove_topic', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -1690,12 +1690,12 @@
                     showMessage('topicMessage', 'Error: ' + err.message, 'error');
                 });
         }
-        
+
         function clearAllTopics() {
             if (!confirm('Clear all additional topics?')) {
                 return;
             }
-            
+
             fetch('/api/clear_topics', {method: 'POST'})
                 .then(r => r.json())
                 .then(data => {
@@ -1710,7 +1710,7 @@
                     showMessage('topicMessage', 'Error: ' + err.message, 'error');
                 });
         }
-        
+
         function showMessage(id, text, type) {
             const msg = document.getElementById(id);
             msg.textContent = text;
@@ -1720,11 +1720,11 @@
                 msg.style.display = 'none';
             }, 5000);
         }
-        
+
         // Start status polling
         updateStatus();
         statusCheckInterval = setInterval(updateStatus, 1000);
-        
+
         // Check for pending citations from matcher
         window.addEventListener('load', function() {
             const uiState = loadUiState();
@@ -1761,18 +1761,18 @@
                     } else {
                         citationTextarea.value = pendingCitations;
                     }
-                    
+
                     showMessage('addMessage', '✅ Citations loaded from Matcher', 'success');
-                    
+
                     // Optional: Scroll to textarea
                     citationTextarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
+
                     // Clear storage so it doesn't reload on refresh
                     localStorage.removeItem('pendingCitations');
                 }
             }
         });
-        
+
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
@@ -1793,7 +1793,7 @@
                 }
                 return false;
             }
-            
+
             // Ctrl+A or Cmd+A: Focus citation textarea (only if not in input field)
             if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
                 // Don't prevent default if user is typing in an input/textarea
@@ -1803,7 +1803,7 @@
                     activeElement.tagName === 'TEXTAREA' ||
                     activeElement.isContentEditable
                 );
-                
+
                 if (!isInputField) {
                     e.preventDefault(); // Prevent select all
                     const citationTextarea = document.getElementById('citationText');
@@ -1815,7 +1815,7 @@
                 }
             }
         });
-        
+
         // Cleanup on page unload
         window.addEventListener('beforeunload', () => {
             if (statusCheckInterval) {

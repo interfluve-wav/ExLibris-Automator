@@ -122,5 +122,3 @@ In Discord (in the channel you invited the bot to):
 - The Discord bot queues citations and starts a persistent Playwright worker on `!f`
 - The worker logs into Esploro, fills the form, and stays open between items
 - A concise field-by-field summary is posted back to Discord for each fill
-
-

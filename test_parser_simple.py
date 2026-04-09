@@ -11,15 +11,15 @@ from openai_parser import parse_citation_with_openai
 # Test citations
 test_citations = [
     # Conference presentation
-    """Smith, J., & Doe, A. (2023, May 15-17). Understanding Machine Learning in Healthcare. 
+    """Smith, J., & Doe, A. (2023, May 15-17). Understanding Machine Learning in Healthcare.
     Proceedings of the 45th Annual Conference on AI in Medicine. Boston, MA.""",
-    
-    # Journal article  
-    """Johnson, M. (2022). Deep Learning Applications in Medical Imaging. 
+
+    # Journal article
+    """Johnson, M. (2022). Deep Learning Applications in Medical Imaging.
     Journal of Medical Informatics, 15(3), 234-256.""",
-    
+
     # Conference proceedings
-    """Williams, R. (2021). Data Privacy in the Digital Age. In Proceedings of the 
+    """Williams, R. (2021). Data Privacy in the Digital Age. In Proceedings of the
     International Conference on Cybersecurity (pp. 112-125). San Francisco, CA: ACM Press."""
 ]
 
@@ -33,13 +33,13 @@ for i, citation in enumerate(test_citations, 1):
     print(f"{'='*80}")
     print(f"Citation: {citation[:100]}...")
     print()
-    
+
     result = parse_citation_with_openai(citation)
-    
+
     if "error" in result:
         print(f"❌ ERROR: {result['error']}")
         continue
-    
+
     # Print key fields
     title = result.get('proceedings_title') or result.get('article_title') or 'N/A'
     print(f"Asset Type:        {result.get('asset_type', 'N/A')}")
@@ -53,19 +53,19 @@ for i, citation in enumerate(test_citations, 1):
     print(f"Volume:            {result.get('volume', 'N/A')}")
     print(f"Issue:             {result.get('issue', 'N/A')}")
     print(f"Pages:             {result.get('pages', 'N/A')}")
-    
+
     # Quality checks
     print("\n✓ Quality Checks:")
     if title and title != 'N/A' and len(title) > 5:
         print("  ✅ Title extracted")
     else:
         print("  ❌ Title missing or too short")
-    
+
     if result.get('authors'):
         print("  ✅ Authors extracted")
     else:
         print("  ⚠️  No authors found")
-    
+
     if result.get('year'):
         print("  ✅ Year extracted")
     else:

@@ -33,29 +33,29 @@ def format_field(value, max_length=80):
 def check_title_quality(title, authors):
     """Check if title looks correct"""
     issues = []
-    
+
     if not title:
         issues.append("❌ No title extracted")
         return issues
-    
+
     if len(title) < 5:
         issues.append(f"⚠️  Title too short: '{title}'")
-    
+
     # Check if title looks like an author name
     if re.fullmatch(r"[A-Z][A-Za-z'\-]+,\s*[A-Z](?:[A-Z]|\.)*\s*", title.strip(), flags=re.I):
         issues.append(f"❌ Title looks like an author name: '{title}'")
-    
+
     # Check if title is just initials
     if re.match(r"^[A-Z](?:[A-Z]|\.)+\s*$", title.strip()):
         issues.append(f"❌ Title is just initials: '{title}'")
-    
+
     # Check if title matches author (shouldn't happen)
     if authors and title.strip() in authors:
         issues.append(f"⚠️  Title matches author field: '{title}'")
-    
+
     if not issues:
         issues.append("✅ Title looks good")
-    
+
     return issues
 
 def test_citation(citation, index):
@@ -66,15 +66,15 @@ def test_citation(citation, index):
     print(f"\nCitation:")
     print(f"  {citation}")
     print(f"\n{'-'*100}")
-    
+
     try:
         result = parse_any_citation(citation)
-        
+
         # Check for errors
         if 'error' in result:
             print(f"❌ PARSER ERROR: {result['error']}")
             return False
-        
+
         # Extract key fields
         title = result.get('proceedings_title', '')
         authors = result.get('authors', '')
@@ -83,7 +83,7 @@ def test_citation(citation, index):
         location = result.get('conference_location', '')
         date = result.get('date_presented', '')
         asset_type = result.get('asset_type', '')
-        
+
         # Display results
         print(f"\nParsed Results:")
         print(f"  {'Title:':<25} {format_field(title)}")
@@ -93,28 +93,28 @@ def test_citation(citation, index):
         print(f"  {'Conference:':<25} {format_field(conference)}")
         print(f"  {'Location:':<25} {format_field(location)}")
         print(f"  {'Asset Type:':<25} {format_field(asset_type)}")
-        
+
         # Quality checks
         print(f"\nQuality Checks:")
         title_issues = check_title_quality(title, authors)
         for issue in title_issues:
             print(f"  {issue}")
-        
+
         # Additional fields
         other_fields = {k: v for k, v in result.items() if k not in [
-            'proceedings_title', 'authors', 'year', 'conference_name', 
+            'proceedings_title', 'authors', 'year', 'conference_name',
             'conference_location', 'date_presented', 'asset_type', 'channel_id'
         ] and v}
-        
+
         if other_fields:
             print(f"\nOther Fields:")
             for key, value in other_fields.items():
                 print(f"  {key:<25} {format_field(value)}")
-        
+
         # Overall assessment
         has_errors = any('❌' in issue for issue in title_issues)
         has_warnings = any('⚠️' in issue for issue in title_issues)
-        
+
         if has_errors:
             print(f"\n❌ FAILED: Title extraction has errors")
             return False
@@ -124,7 +124,7 @@ def test_citation(citation, index):
         else:
             print(f"\n✅ PASSED: Title extraction looks good")
             return True
-            
+
     except Exception as e:
         print(f"❌ EXCEPTION: {str(e)}")
         import traceback
@@ -138,19 +138,19 @@ def main():
         print("="*100)
         print("\nPlease add citations to the CITATIONS list in test_citations.py")
         return
-    
+
     print("="*100)
     print("Citation Parser Test Suite")
     print("="*100)
     print(f"\nTesting {len(CITATIONS)} citation(s)...")
-    
+
     results = []
     for i, citation in enumerate(CITATIONS):
         if not citation.strip():
             continue
         passed = test_citation(citation.strip(), i)
         results.append(passed)
-    
+
     # Summary
     print(f"\n{'='*100}")
     print("Summary")
@@ -158,11 +158,11 @@ def main():
     total = len(results)
     passed = sum(results)
     failed = total - passed
-    
+
     print(f"\nTotal Citations: {total}")
     print(f"✅ Passed: {passed}")
     print(f"❌ Failed: {failed}")
-    
+
     if failed == 0:
         print(f"\n🎉 All citations parsed successfully!")
     else:
@@ -170,4 +170,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

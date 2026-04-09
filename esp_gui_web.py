@@ -79,10 +79,10 @@ class StandaloneManager:
         self.config_manager = get_config_manager()
         self.config_manager.initialize(BOT_CONFIG_FILE, default_factory=self._default_config)
         self.lock = threading.Lock()
-        
+
         # Force unpause on startup (fix for "Bot is paused" error from previous sessions)
         self.save_config({'paused': False})
-        
+
         # Start background monitor
         threading.Thread(target=self._monitor_status, daemon=True).start()
         print(f"🚀 Standalone Manager initialized (Channel: {self.channel_id})")
@@ -107,7 +107,7 @@ class StandaloneManager:
     def add_citation(self, text):
         if not text:
             return {'success': False, 'error': 'No text'}
-        
+
         count = 0
         # Keep splitter behavior aligned with GUI/API add flow:
         # - Prefer paragraph-style separation (blank lines)
@@ -120,22 +120,22 @@ class StandaloneManager:
             lines = [t for t in single_lines if len(t) > 20]
         if not lines:
             lines = [text.strip()]
-            
+
         with self.lock:
             config = self.get_config()
             for line in lines:
                 # Basic validation
                 valid, msg = validate_citation_text(line)
-                if not valid: 
+                if not valid:
                     continue
-                    
+
                 # Determine asset type (simplified logic)
                 asset_type = config.get('asset_mode', 'auto')
                 if 'poster' in line.lower() and asset_type == 'auto':
                     asset_type = 'poster'
                 elif asset_type == 'auto':
                     asset_type = 'presentation'
-                    
+
                 citation = {
                     'text': sanitize_text(line),
                     'asset_type': asset_type,
@@ -144,12 +144,12 @@ class StandaloneManager:
                 }
                 self.queue.append(citation)
                 count += 1
-                
+
             # Update stats
             stats = config.get('stats', {'enqueued': 0})
             stats['enqueued'] = stats.get('enqueued', 0) + count
             self.save_config({'stats': stats})
-            
+
         return {'success': True, 'count': count}
 
     def trigger_fill(self):
@@ -160,24 +160,24 @@ class StandaloneManager:
 
             if self.processing_citation is not None:
                 return {'success': False, 'error': 'Already processing a citation'}
-            
+
             if not self.queue:
                 return {'success': False, 'error': 'Queue is empty'}
-                
+
             # Auto-restart check (PRE-CHECK logic)
             restart_interval = config.get('auto_restart_interval', 0)
             if restart_interval > 0 and self.process_fill_count >= restart_interval:
                 print(f"🔄 Auto-restart: {self.process_fill_count}/{restart_interval} fills. Restarting worker...")
                 self._stop_worker()
                 self.process_fill_count = 0
-            
+
             # Start worker if needed
             self._ensure_worker_running()
-            
+
             # Pop and process
             citation = self.queue.popleft()
             self.processing_citation = citation
-            
+
             # Write control file
             data = {
                 'text': citation['text'],
@@ -188,7 +188,7 @@ class StandaloneManager:
             }
             with open(self.control_file, 'w') as f:
                 json.dump(data, f)
-            
+
             # Write filling status for UI
             with open(COMPLETION_STATUS_FILE, 'w') as f:
                 json.dump({
@@ -196,13 +196,13 @@ class StandaloneManager:
                     'citation_id': citation['citation_id'],
                     'timestamp': time.time()
                 }, f)
-                
+
         return {'success': True}
 
     def _ensure_worker_running(self):
         if self.active_process and self.active_process.poll() is None:
             return
-            
+
         print(f"🚀 Starting standalone worker for channel '{self.channel_id}'...")
         cmd = [sys.executable, '-m', 'automation.worker', self.channel_id]
         self.active_process = subprocess.Popen(cmd, cwd=PROJECT_DIR)
@@ -233,7 +233,7 @@ class StandaloneManager:
                 if os.path.exists(self.status_file):
                     with open(self.status_file, 'r') as f:
                         status = json.load(f)
-                    
+
                     written_id = status.get('last_written_id')
                     state = status.get('state')
                     if written_id and written_id != last_id and state == 'completed':
@@ -331,11 +331,11 @@ def get_status_data():
     global RUN_BASE_ENQUEUED, RUN_BASE_PROCESSED
     if IS_STANDALONE and standalone_manager:
         # Mix in the completion status file logic if needed, or let manager handle it
-        # The manager writes to COMPLETION_STATUS_FILE so the frontend logic below 
+        # The manager writes to COMPLETION_STATUS_FILE so the frontend logic below
         # (reading that file) will still work for 'filling'/'completed' states.
         # We just need to base the config/queue data on the manager.
         base = standalone_manager.get_status_dict()
-        
+
         # Overlay completion status from file (shared logic with hybrid mode)
         if os.path.exists(COMPLETION_STATUS_FILE):
             try:
@@ -373,11 +373,11 @@ def get_status_data():
                         except Exception:
                             pass
             except: pass
-            
+
         if base['status'] == 'idle' and base['queueSize'] > 0:
             base['status'] = 'ready'
             base['statusText'] = 'Status: Ready to fill next citation'
-            
+
         return base
 
     try:
@@ -386,7 +386,7 @@ def get_status_data():
         queue_size = 0
         processed = 0
         enqueued = 0
-        
+
         # Check completion status
         if os.path.exists(COMPLETION_STATUS_FILE):
             try:
@@ -394,10 +394,10 @@ def get_status_data():
                     status_data = json.load(f)
                 file_status = status_data.get('status', 'idle')
                 file_timestamp = status_data.get('timestamp', 0)
-                
+
                 # Only show completed status for 5 seconds after completion
                 time_since_completion = time.time() - file_timestamp
-                
+
                 if file_status == 'completed':
                     if time_since_completion < COMPLETED_STATUS_TTL_SEC:
                         status = 'completed'
@@ -432,13 +432,13 @@ def get_status_data():
                             pass
             except Exception:
                 pass
-        
+
         # Get queue info
         config_files = [
             BOT_CONFIG_FILE,
             os.path.join(PROJECT_DIR, "bot_config.json"),
         ]
-        
+
         config = {}
         stats = {}
         for config_file in config_files:
@@ -463,29 +463,29 @@ def get_status_data():
                     break
                 except Exception:
                     continue
-        
+
         # Determine status if not set by completion file
         if status == 'idle' and queue_size > 0:
             status = 'ready'
             status_text = 'Status: Ready to fill next citation'
-        
+
         # Get additional stats
         paused = config.get('paused', False) if config else False
         researcher = config.get('default_researcher', '-') if config else '-'
         asset_mode = config.get('asset_mode', '-') if config else '-'
         errors = stats.get('errors', 0) if config else 0
-        
+
         # Get additional topics for current channel
         additional_topics = []
         if config and CITATION_CHANNEL_ID and CITATION_CHANNEL_ID.isdigit():
             topics_by_channel = config.get('additional_topics', {})
             additional_topics = topics_by_channel.get(str(CITATION_CHANNEL_ID), [])
-        
+
         # Get auto-fill authors setting (default to True for backward compatibility)
         auto_fill_authors = config.get('auto_fill_authors', True) if config else True
         author_add_delay_ms = config.get('author_add_delay_ms', 1000) if config else 1000
         auto_restart_interval = config.get('auto_restart_interval', 0) if config else 0
-        
+
         # Resume-style estimate: based on documented ~30-50% faster processing
         # and a current parser target of ~0.5s per citation.
         time_saved_estimate_label = "-"
@@ -541,7 +541,7 @@ def add_citation_to_queue(text):
     """Add citation to queue"""
     if not text:
         return {'success': False, 'error': 'No citation text provided'}
-    
+
     try:
         # Split citations
         citations = []
@@ -549,16 +549,16 @@ def add_citation_to_queue(text):
             citations = [c.strip() for c in text.split('\n\n') if c.strip()]
         else:
             citations = [c.strip() for c in text.split('\n') if c.strip() and len(c.strip()) > 20]
-        
+
         if not citations:
             citations = [text]
-        
+
         added_count = 0
         for citation in citations:
             try:
                 with open(ADD_CITATION_FILE, 'w', encoding='utf-8') as f:
                     json.dump({'text': citation}, f)
-                
+
                 # Wait for bot to process
                 max_wait = 5
                 waited = 0
@@ -575,11 +575,11 @@ def add_citation_to_queue(text):
                             return {'success': False, 'error': result.get('error', 'Unknown error')}
                     except (json.JSONDecodeError, FileNotFoundError):
                         continue
-                
+
                 time.sleep(0.1)
             except Exception as e:
                 return {'success': False, 'error': str(e)}
-        
+
         return {'success': True, 'count': added_count}
     except Exception as e:
         return {'success': False, 'error': str(e)}
@@ -668,7 +668,7 @@ def api_add():
     data = request.json
     if IS_STANDALONE:
         return jsonify(standalone_manager.add_citation(data.get('text', '')))
-    
+
     result = add_citation_to_queue(data.get('text', ''))
     return jsonify(result)
 
@@ -697,12 +697,12 @@ def api_close():
     try:
         with open(CONTROL_SHUTDOWN, 'w') as f:
             f.write("1")
-        
+
         # Schedule server shutdown
         def delayed_shutdown():
             time.sleep(1)
             os._exit(0)
-        
+
         threading.Thread(target=delayed_shutdown, daemon=True).start()
         return jsonify({'success': True})
     except Exception as e:
@@ -725,12 +725,12 @@ def api_queue():
     try:
         # Read queue via control file (bot will write it)
         queue_file = os.path.join(PROJECT_DIR, 'gui_queue.json')
-        
+
         # Request queue from bot by creating a request file
         request_file = os.path.join(PROJECT_DIR, 'gui_queue_request.json')
         with open(request_file, 'w') as f:
             json.dump({'request': True, 'timestamp': time.time()}, f)
-        
+
         # Wait for bot to respond (up to 2 seconds)
         max_wait = 2
         waited = 0
@@ -750,13 +750,13 @@ def api_queue():
                     return jsonify(queue_data)
                 except (json.JSONDecodeError, FileNotFoundError):
                     continue
-        
+
         # Clean up request file
         try:
             os.remove(request_file)
         except Exception:
             pass
-        
+
         return jsonify({'success': False, 'error': 'Timeout waiting for queue data', 'queue': []})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e), 'queue': []})
@@ -772,7 +772,7 @@ def api_clear():
         clear_file = os.path.join(PROJECT_DIR, 'gui_clear_queue.json')
         with open(clear_file, 'w') as f:
             json.dump({'clear': True, 'timestamp': time.time()}, f)
-        
+
         # Wait for confirmation
         max_wait = 2
         waited = 0
@@ -787,7 +787,7 @@ def api_clear():
                     return jsonify(result)
             except (json.JSONDecodeError, FileNotFoundError):
                 continue
-        
+
         return jsonify({'success': True, 'message': 'Clear request sent'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -831,10 +831,10 @@ def api_skip():
                 os.remove(skip_file)
             except Exception:
                 pass
-        
+
         with open(skip_file, 'w') as f:
             json.dump({'skip': True, 'timestamp': time.time()}, f)
-        
+
         # Wait for bot to process and write response
         max_wait = 3
         waited = 0
@@ -853,13 +853,13 @@ def api_skip():
                     return jsonify(result)
             except (json.JSONDecodeError, FileNotFoundError, KeyError):
                 continue
-        
+
         # Clean up if no response
         try:
             os.remove(skip_file)
         except Exception:
             pass
-        
+
         return jsonify({'success': True, 'message': 'Skip request sent'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -869,25 +869,25 @@ def api_set_researcher():
     data = request.json
     researcher = data.get('researcher', '').strip()
     if not researcher: return jsonify({'success': False, 'error': 'Required'})
-    
+
     if IS_STANDALONE:
         standalone_manager.save_config({'default_researcher': researcher})
         return jsonify({'success': True, 'researcher': researcher})
 
     try:
         researcher_file = os.path.join(PROJECT_DIR, 'gui_set_researcher.json')
-        
+
         # Clear any existing file first
         if os.path.exists(researcher_file):
             try:
                 os.remove(researcher_file)
             except Exception:
                 pass
-        
+
         # Write request
         with open(researcher_file, 'w', encoding='utf-8') as f:
             json.dump({'researcher': researcher, 'timestamp': time.time()}, f)
-        
+
         # Wait for bot to process and write response (longer wait for config save)
         max_wait = 3
         waited = 0
@@ -907,13 +907,13 @@ def api_set_researcher():
                     return jsonify(result)
             except (json.JSONDecodeError, FileNotFoundError, KeyError):
                 continue
-        
+
         # Clean up if no response
         try:
             os.remove(researcher_file)
         except Exception:
             pass
-        
+
         return jsonify({'success': False, 'error': 'Timeout waiting for bot response'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -923,7 +923,7 @@ def api_set_asset_type():
     data = request.json
     asset_type = data.get('asset_type', '').strip()
     if not asset_type: return jsonify({'success': False, 'error': 'Required'})
-    
+
     normalized = normalize_config_mode(asset_type)
     if IS_STANDALONE:
         standalone_manager.save_config({'asset_mode': normalized})
@@ -932,20 +932,20 @@ def api_set_asset_type():
     try:
         # Normalize using shared utility
         normalized_type = normalize_config_mode(asset_type)
-        
+
         asset_type_file = os.path.join(PROJECT_DIR, 'gui_set_asset_type.json')
-        
+
         # Clear any existing file first
         if os.path.exists(asset_type_file):
             try:
                 os.remove(asset_type_file)
             except Exception:
                 pass
-        
+
         # Write request with normalized type
         with open(asset_type_file, 'w', encoding='utf-8') as f:
             json.dump({'asset_type': normalized_type}, f)
-        
+
         # Wait for bot response (polling)
         max_wait = 5  # seconds
         start_time = time.time()
@@ -959,7 +959,7 @@ def api_set_asset_type():
             except Exception:
                 pass
             time.sleep(0.2)
-        
+
         return jsonify({'success': False, 'error': 'Timeout waiting for bot response'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -973,25 +973,25 @@ def api_set_author_add_delay():
             standalone_manager.save_config({'author_add_delay_ms': delay})
             return jsonify({'success': True})
     except: pass # fallthrough
-    
+
     try:
         delay_ms = int(data.get('delay_ms', 1000))
         if delay_ms not in (500, 1000, 2000, 3000):
             return jsonify({'success': False, 'error': 'Delay must be 500, 1000, 2000, or 3000 ms'})
-        
+
         control_file = os.path.join(PROJECT_DIR, 'gui_set_author_add_delay.json')
-        
+
         # Clear existing
         if os.path.exists(control_file):
             try:
                 os.remove(control_file)
             except Exception:
                 pass
-        
+
         # Write request
         with open(control_file, 'w', encoding='utf-8') as f:
             json.dump({'delay_ms': delay_ms, 'timestamp': time.time()}, f)
-        
+
         # Wait for bot response
         max_wait = 3
         waited = 0
@@ -1009,12 +1009,12 @@ def api_set_author_add_delay():
                     return jsonify(result)
             except (json.JSONDecodeError, FileNotFoundError, KeyError):
                 continue
-        
+
         try:
             os.remove(control_file)
         except Exception:
             pass
-        
+
         return jsonify({'success': False, 'error': 'Timeout waiting for bot response'})
     except (ValueError, TypeError):
         return jsonify({'success': False, 'error': 'Invalid delay value'})
@@ -1028,7 +1028,7 @@ def api_set_restart_policy():
         enabled = data.get('enabled', False)
         interval = int(data.get('interval', 0))
         final = interval if enabled else 0
-        
+
         if IS_STANDALONE:
             standalone_manager.save_config({'auto_restart_interval': final})
             return jsonify({'success': True})
@@ -1037,21 +1037,21 @@ def api_set_restart_policy():
     try:
         enabled = data.get('enabled', False)
         interval = int(data.get('interval', 0))
-        
+
         # If disabled, set interval to 0
         final_interval = interval if enabled else 0
-        
+
         control_file = os.path.join(PROJECT_DIR, 'gui_set_restart_policy.json')
-        
+
         if os.path.exists(control_file):
             try:
                 os.remove(control_file)
             except Exception:
                 pass
-        
+
         with open(control_file, 'w', encoding='utf-8') as f:
             json.dump({'interval': final_interval, 'timestamp': time.time()}, f)
-        
+
         max_wait = 3
         waited = 0
         while waited < max_wait:
@@ -1068,12 +1068,12 @@ def api_set_restart_policy():
                     return jsonify(result)
             except (json.JSONDecodeError, FileNotFoundError, KeyError):
                 continue
-        
+
         try:
             os.remove(control_file)
         except Exception:
             pass
-        
+
         return jsonify({'success': False, 'error': 'Timeout waiting for bot response'})
     except (ValueError, TypeError):
         return jsonify({'success': False, 'error': 'Invalid interval value'})
@@ -1084,25 +1084,25 @@ def api_set_restart_policy():
 def api_toggle_auto_fill_authors():
     data = request.json
     enabled = data.get('enabled', False)
-    
+
     if IS_STANDALONE:
         standalone_manager.save_config({'auto_fill_authors': enabled})
         return jsonify({'success': True})
 
     try:
         control_file = os.path.join(PROJECT_DIR, 'gui_toggle_auto_fill_authors.json')
-        
+
         # Clear existing
         if os.path.exists(control_file):
             try:
                 os.remove(control_file)
             except Exception:
                 pass
-        
+
         # Write request
         with open(control_file, 'w', encoding='utf-8') as f:
             json.dump({'enabled': bool(enabled), 'timestamp': time.time()}, f)
-        
+
         # Wait for bot response
         max_wait = 3
         waited = 0
@@ -1120,12 +1120,12 @@ def api_toggle_auto_fill_authors():
                     return jsonify(result)
             except (json.JSONDecodeError, FileNotFoundError, KeyError):
                 continue
-        
+
         try:
             os.remove(control_file)
         except Exception:
             pass
-        
+
         return jsonify({'success': False, 'error': 'Timeout waiting for bot response'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1135,7 +1135,7 @@ def api_add_topic():
     data = request.json
     topic = data.get('topic', '').strip()
     if not topic: return jsonify({'success': False})
-    
+
     if IS_STANDALONE:
         cfg = standalone_manager.get_config()
         topics = cfg.get('additional_topics', {})
@@ -1149,21 +1149,21 @@ def api_add_topic():
 
     if not topic:
         return jsonify({'success': False, 'error': 'Topic text is required'})
-    
+
     try:
         topic_file = os.path.join(PROJECT_DIR, 'gui_add_topic.json')
-        
+
         # Clear any existing file first
         if os.path.exists(topic_file):
             try:
                 os.remove(topic_file)
             except Exception:
                 pass
-        
+
         # Write request
         with open(topic_file, 'w', encoding='utf-8') as f:
             json.dump({'topic': topic, 'timestamp': time.time()}, f)
-        
+
         # Wait for bot to process
         max_wait = 3
         waited = 0
@@ -1181,12 +1181,12 @@ def api_add_topic():
                     return jsonify(result)
             except (json.JSONDecodeError, FileNotFoundError, KeyError):
                 continue
-        
+
         try:
             os.remove(topic_file)
         except Exception:
             pass
-        
+
         return jsonify({'success': False, 'error': 'Timeout waiting for bot response'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1195,7 +1195,7 @@ def api_add_topic():
 def api_remove_topic():
     data = request.json
     topic = data.get('topic', '').strip()
-    
+
     if IS_STANDALONE and topic:
         cfg = standalone_manager.get_config()
         topics = cfg.get('additional_topics', {})
@@ -1207,19 +1207,19 @@ def api_remove_topic():
 
     if not topic:
         return jsonify({'success': False, 'error': 'Topic text is required'})
-    
+
     try:
         topic_file = os.path.join(PROJECT_DIR, 'gui_remove_topic.json')
-        
+
         if os.path.exists(topic_file):
             try:
                 os.remove(topic_file)
             except Exception:
                 pass
-        
+
         with open(topic_file, 'w', encoding='utf-8') as f:
             json.dump({'topic': topic, 'timestamp': time.time()}, f)
-        
+
         max_wait = 3
         waited = 0
         while waited < max_wait:
@@ -1236,12 +1236,12 @@ def api_remove_topic():
                     return jsonify(result)
             except (json.JSONDecodeError, FileNotFoundError, KeyError):
                 continue
-        
+
         try:
             os.remove(topic_file)
         except Exception:
             pass
-        
+
         return jsonify({'success': False, 'error': 'Timeout waiting for bot response'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1259,16 +1259,16 @@ def api_clear_topics():
 
     try:
         clear_file = os.path.join(PROJECT_DIR, 'gui_clear_topics.json')
-        
+
         if os.path.exists(clear_file):
             try:
                 os.remove(clear_file)
             except Exception:
                 pass
-        
+
         with open(clear_file, 'w', encoding='utf-8') as f:
             json.dump({'clear': True, 'timestamp': time.time()}, f)
-        
+
         max_wait = 3
         waited = 0
         while waited < max_wait:
@@ -1285,12 +1285,12 @@ def api_clear_topics():
                     return jsonify(result)
             except (json.JSONDecodeError, FileNotFoundError, KeyError):
                 continue
-        
+
         try:
             os.remove(clear_file)
         except Exception:
             pass
-        
+
         return jsonify({'success': False, 'error': 'Timeout waiting for bot response'})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1299,16 +1299,16 @@ def api_clear_topics():
 def api_match_citations():
     text = request.form.get('text', '')
     file = request.files.get('file')
-    
+
     if not text:
         return jsonify({'success': False, 'error': 'No text provided'})
     if not file:
         return jsonify({'success': False, 'error': 'No file uploaded'})
-    
+
     try:
         filename = secure_filename(file.filename)
         file_content = ""
-        
+
         if filename.lower().endswith('.pdf'):
             pdf_reader = PyPDF2.PdfReader(file)
             for page in pdf_reader.pages:
@@ -1344,13 +1344,13 @@ def api_match_citations():
              file_content = file.read().decode('utf-8', errors='ignore')
         else:
             return jsonify({'success': False, 'error': 'Unsupported file format'})
-            
+
         # Cross reference logic
         matches = []
-        
+
         # Preprocessing regex for stripping prefixes (numbers, bullets, dots)
         prefix_pattern = re.compile(r'^[\d\.\s\-\*•]+')
-        
+
         def normalize_text(text):
             """Normalize text for comparison: lowercase, remove punctuation, strip whitespace"""
             if not text:
@@ -1369,7 +1369,7 @@ def api_match_citations():
 
         # Split content into lines and filter empty ones
         file_lines = [line for line in file_content.split('\n') if line.strip()]
-        
+
         # Pre-process file lines for efficiency
         processed_file_lines = []
         for line in file_lines:
@@ -1380,36 +1380,36 @@ def api_match_citations():
                 'stripped': stripped,
                 'normalized': normalized
             })
-        
+
         # Normalize search text
         # Split input text into individual queries (newline separated)
         queries = [q.strip() for q in text.split('\n') if q.strip()]
-        
+
         for query in queries:
             norm_query = normalize_text(query)
             if not norm_query:
                 continue
-                
+
             best_score = 0
             best_match = None
-            
+
             for p_line in processed_file_lines:
                 if not p_line['normalized']:
                     continue
-                    
+
                 # Use partial_ratio because the search text (title) is likely a substring of the full citation
                 score = fuzz.partial_ratio(norm_query, p_line['normalized'])
-                
+
                 if score > best_score:
                     best_score = score
                     best_match = p_line['stripped']
-            
+
             # Threshold for match (85 is usually a good starting point for high confidence)
             if best_score >= 85 and best_match:
                 matches.append(best_match)
-        
+
         return jsonify({'success': True, 'matches': matches})
-        
+
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
@@ -1418,15 +1418,15 @@ def main():
     parser.add_argument('--standalone', '-s', action='store_true', help='Run in standalone mode (no Discord bot)')
     parser.add_argument('--port', type=int, default=8765, help='Web server port')
     args, unknown = parser.parse_known_args()
-    
+
     global IS_STANDALONE, standalone_manager
     if args.standalone or os.getenv('ESP_STANDALONE') == '1':
         IS_STANDALONE = True
         standalone_manager = StandaloneManager()
         print("🔥 RUNNING IN STANDALONE MODE (No Discord Bot required)")
-    
+
     port = args.port
-    
+
     # Clear all stale GUI control files on startup for a fresh state
     stale_files = [
         COMPLETION_STATUS_FILE,
@@ -1447,7 +1447,7 @@ def main():
         os.path.join(PROJECT_DIR, 'gui_set_author_add_delay.json'),
         os.path.join(PROJECT_DIR, 'gui_set_restart_policy.json'),
     ]
-    
+
     cleared_count = 0
     for stale_file in stale_files:
         if os.path.exists(stale_file):
@@ -1456,20 +1456,20 @@ def main():
                 cleared_count += 1
             except Exception as e:
                 print(f"⚠️  Could not clear {os.path.basename(stale_file)}: {e}")
-    
+
     if cleared_count > 0:
         print(f"🧹 Cleared {cleared_count} stale control file(s)")
-    
+
     # Show configuration info
     print(f"📁 Bot config file: {BOT_CONFIG_FILE}")
     print(f"📺 Channel ID: {CITATION_CHANNEL_ID or 'Not set'}")
-    
+
     # Check if port is already in use and try to kill the process
     import socket
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     result = sock.connect_ex(('localhost', port))
     sock.close()
-    
+
     if result == 0:
         # Port is in use, try to kill the process
         print(f"⚠️  Port {port} is already in use. Attempting to free it...")
@@ -1496,12 +1496,12 @@ def main():
             print(f"⚠️  Could not free port {port}: {e}")
             print(f"💡 Please manually close the process using port {port} or restart your computer")
             return
-    
+
     url = f'http://localhost:{port}'
     print(f"🌐 ESP GUI Server starting on {url}")
     print("📱 Opening browser...")
     print("💡 Press Ctrl+C or use 'Close Bot' button to exit")
-    
+
     # Open browser after a short delay (skip in container/CI contexts)
     disable_browser_open = (os.getenv("NO_OPEN_BROWSER") or "").strip().lower() in {"1", "true", "yes"}
     if not disable_browser_open:
@@ -1509,7 +1509,7 @@ def main():
             time.sleep(1)
             webbrowser.open(url)
         threading.Thread(target=open_browser, daemon=True).start()
-    
+
     # Run Flask app (env-configurable for container live-edit mode)
     host = os.getenv("FLASK_HOST", "127.0.0.1")
     debug_mode = (os.getenv("FLASK_DEBUG") or "").strip().lower() in {"1", "true", "yes"}

@@ -47,11 +47,11 @@ def parse_any_citation(citation_text: str) -> Dict[str, str]:
         print("[parser] Using manual regex parser")
         # Use manual regex parser as fallback
         return parse_citation(citation_text)
-    
+
     # Handle errors from LLM parsers
     if "error" in llm_data:
         return llm_data
-    
+
     # Normalize LLM results for technical documentation
     try:
         # Clear conference-related fields for technical documentation
@@ -61,12 +61,12 @@ def parse_any_citation(citation_text: str) -> Dict[str, str]:
         llm_data['conference_location'] = ''
         llm_data['conference_date_from'] = ''
         llm_data['conference_date_to'] = ''
-        
+
         # Set asset_title from proceedings_title or article_title
         title = llm_data.get('proceedings_title') or llm_data.get('article_title') or llm_data.get('asset_title') or ''
         llm_data['asset_title'] = title
         llm_data['proceedings_title'] = title  # Keep for compatibility
-        
+
         # Clean DOI
         if llm_data.get('doi'):
             doi = llm_data['doi']
@@ -77,13 +77,13 @@ def parse_any_citation(citation_text: str) -> Dict[str, str]:
             if m:
                 doi = m.group(1)
             llm_data['doi'] = doi.strip()
-        
+
         # Ensure year is set
         if not llm_data.get('year'):
             m_year = re.search(r'\b(\d{4})\b', citation_text)
             if m_year:
                 llm_data['year'] = m_year.group(1)
-        
+
         llm_data['date_presented'] = llm_data.get('year', '')
     except Exception:
         pass
@@ -104,9 +104,9 @@ def parse_any_citation(citation_text: str) -> Dict[str, str]:
             manual = parse_citation(citation_text)
         except Exception:
             manual = {}
-        
+
         # Fill missing fields from manual parse
-        for k in ['proceedings_title', 'publisher_name', 'report_number', 
+        for k in ['proceedings_title', 'publisher_name', 'report_number',
                   'doi', 'year', 'date_presented']:
             if not llm_data.get(k) and manual.get(k):
                 llm_data[k] = manual[k]
@@ -148,13 +148,13 @@ def parse_citation(citation_text: str) -> Dict[str, str]:
     # Extract year: (YYYY)
     m_date = re.search(r"\((\d{4})\)", text)
     year = m_date.group(1) if m_date else ""
-    
+
     # Extract authors (everything before the date)
     authors = ""
     if m_date:
         date_start = m_date.start()
         authors = text[:date_start].strip().rstrip(' .,')
-    
+
     # Extract title (between year and the publisher/organization section)
     title = ""
     after_title = ""
@@ -164,7 +164,7 @@ def parse_citation(citation_text: str) -> Dict[str, str]:
         # Skip leading period if present
         if after_date.startswith('.'):
             after_date = after_date[1:].strip()
-        
+
         # Title ends at the next period (before publisher section)
         first_period = after_date.find('.')
         if first_period > 0:
@@ -180,31 +180,31 @@ def parse_citation(citation_text: str) -> Dict[str, str]:
             else:
                 # Fallback: entire text is the title
                 title = after_date.strip()
-    
+
     # Extract publisher name
     publisher_name = ""
     # Pattern: Publisher Name, ...
     m_pub = re.match(r"^([^,.]+)", after_title)
     if m_pub:
         publisher_name = m_pub.group(1).strip()
-    
+
     # Extract report number if present
     report_number = ""
     m_report = re.search(r"(?:Report|Tech\.?\s*Report|Technical\s*Report|No\.?)\s*([A-Z0-9\-]+)", text, flags=re.I)
     if m_report:
         report_number = m_report.group(1)
-    
+
     # Extract DOI if present
     doi = ""
     m_doi = re.search(r"(?:DOI[:\s]*)?(10\.\d{4,9}/\S+)", text, flags=re.I)
     if m_doi:
         doi = m_doi.group(1)
-    
+
     # Date fields for compatibility
     date_presented = year
     date_presented_mmddyyyy = ""
     date_presented_mmyyyy = ""
-    
+
     return {
         "proceedings_title": title,  # Main title field (kept for compatibility)
         "asset_title": title,  # Technical Documentation uses "Asset title"
@@ -234,7 +234,7 @@ def save_citation_to_csv(citation_data: Dict[str, str], output_file: str):
         "proceedings_title", "authors", "year", "date_presented", "publisher_name",
         "report_number", "doi", "research_topics"
     ]
-    
+
     with open(output_file, 'w', newline='', encoding='utf-8') as f:
         # Ignore any extra fields (e.g., 'link') not in fieldnames
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
@@ -244,7 +244,7 @@ def save_citation_to_csv(citation_data: Dict[str, str], output_file: str):
 def process_citation(page, citation_data: Dict[str, str], pause_after: bool = True, start_from_home: bool = True):
     """Fill one citation for Technical Documentation asset type"""
     LOG.info("Starting process_citation for Technical Documentation")
-    
+
     # Navigate to deposit wizard (optional)
     if start_from_home:
         LOG.debug("Navigating to Deposit Asset page...")
@@ -255,7 +255,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             LOG.debug(f"First click failed: {e}, navigating directly")
             page.goto('https://umassd-researchmanagement.esploro.exlibrisgroup.com/ng;u=%2Fmng%2Faction%2Fhome.do%3FngHome%3Dtrue', timeout=30000)
             page.get_by_role('link', name='Deposit Asset').click(timeout=10000)
-    
+
     # Select researcher and asset type
     LOG.debug("Selecting researcher...")
     researcher = (citation_data.get('researcher') or os.getenv('DEFAULT_RESEARCHER') or 'Scarano, Frank J').strip()
@@ -269,7 +269,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
     page.get_by_role('textbox', name='Researcher').fill(researcher, timeout=5000)
     page.get_by_text(researcher).click(timeout=5000)
     LOG.debug(f"Researcher selected: {researcher}")
-    
+
     # Asset Type Selection - Technical Documentation
     LOG.debug("Selecting asset type: Technical documentation")
     page.get_by_role('combobox', name='Select an item from the list').click(timeout=5000)
@@ -326,7 +326,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             LOG.info(f"✓ Filled publisher: {publisher}")
     except Exception as e:
         LOG.warn(f"Publisher fill skipped: {e}")
-    
+
     # Fill Report Number if present
     try:
         report_number = citation_data.get('report_number', '').strip()
@@ -354,7 +354,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
         LOG.info("✓ Added date")
     except Exception as e:
         LOG.error(f"Failed to add date: {e}")
-    
+
     # Wait for loading blocker mask to disappear before filling subsequent fields
     try:
         page.locator('#loadingBlocker').wait_for(state='hidden', timeout=3000)
@@ -363,7 +363,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
 
     # Add small wait before publisher fields
     page.wait_for_timeout(300)
-    
+
     # Add Language (Published)
     page.get_by_role('combobox', name='Language').click(timeout=5000)
     page.get_by_label('Recent', exact=True).get_by_text('English', exact=True).click(timeout=5000)
@@ -379,7 +379,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
         page.wait_for_timeout(100)
     except Exception:
         pass
-    
+
     # Fill DOI
     try:
         doi = (citation_data.get('doi') or '').strip()
@@ -389,7 +389,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             LOG.info(f"✓ Filled DOI: {doi}")
     except Exception as e:
         LOG.warn(f"DOI fill skipped: {e}")
-    
+
     # Additional 'Description and Research' topics (configurable via slash commands)
     try:
         channel_id = str(citation_data.get('channel_id') or '')
@@ -424,7 +424,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
                     auto_fill_enabled = bot_config.get('auto_fill_authors', True)
         except Exception:
             pass  # If config can't be read, default to True
-        
+
         if auto_fill_enabled:
             authors = citation_data.get('authors', '').strip()
             if authors:
@@ -440,7 +440,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             LOG.info("Author automation disabled (skip filling)")
     except Exception as e:
         LOG.warn(f"Authors fill error: {e}")
-    
+
     LOG.info(f"✓ Form filled for: {citation_data.get('proceedings_title', '')}")
     if not auto_fill_enabled:
         LOG.info("Add creators manually, then submit when ready.")
@@ -449,34 +449,34 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
 
 def main():
     print("=== Citation Processor (Technical Documentation) ===")
-    
+
     # Ask for citation input
     citation_text = input("Enter your citation: ").strip()
-    
+
     if not citation_text:
         print("No citation entered. Exiting.")
         return
-    
+
     print(f"Processing: {citation_text}")
-    
+
     # Parse citation
     parsed_citation = parse_any_citation(citation_text)
-    
+
     if "error" in parsed_citation:
         print(f"Error: {parsed_citation['error']}")
         return
-    
+
     # Save to CSV (overwrites old ones)
     csv_file = 'citationsTechnicalDocumentation.csv'
     save_citation_to_csv(parsed_citation, csv_file)
     print(f"✓ Saved to {csv_file}")
-    
+
     # Show parsed data
     print("\nParsed citation data:")
     for key, value in parsed_citation.items():
         if value:
             print(f"  {key}: {value}")
-    
+
     # Automatically continue to automation after parsing and saving the CSV
 
     if sync_playwright is None:

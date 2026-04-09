@@ -20,10 +20,10 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "📦 Updating packages..."
     pip install --upgrade -r requirements.txt
-    
+
     echo "💾 Generating new requirements.txt with pinned versions..."
     pip freeze > requirements.txt.new
-    
+
     echo "✅ New requirements saved to requirements.txt.new"
     echo "Review and rename to requirements.txt if everything looks good"
 else

@@ -18,5 +18,3 @@ except Exception as e:
     goto_with_retries = _missing
     save_citation_to_csv = _missing
     process_citation = _missing
-
-

@@ -6,7 +6,7 @@ Ensures Discord bot, Flask app, worker, and parser all use consistent asset type
 # Valid asset types that the system supports
 VALID_ASSET_TYPES = {
     "conference_presentation",
-    "conference_proceeding", 
+    "conference_proceeding",
     "poster_presentation",
     "journal_article",
     "book_chapter",
@@ -55,18 +55,18 @@ CONFIG_MODE_TO_ASSET_TYPE = {
 def normalize_asset_type_from_parser(asset_type: str) -> str:
     """
     Normalize asset type returned by OpenAI parser to valid system values.
-    
+
     Args:
         asset_type: Raw asset type string from parser
-        
+
     Returns:
         Normalized asset type (one of VALID_ASSET_TYPES)
     """
     if not asset_type:
         return "conference_presentation"
-    
+
     asset_type_lower = asset_type.strip().lower()
-    
+
     # Map common variations to valid types
     type_map = {
         # Technical documentation variants - keep as technical_documentation
@@ -79,33 +79,33 @@ def normalize_asset_type_from_parser(asset_type: str) -> str:
         "technical report": "technical_documentation",
         "tech doc": "technical_documentation",
         "techdoc": "technical_documentation",
-        
+
         # Presentation variants
         "conference presentation": "conference_presentation",
         "presentation": "conference_presentation",
-        
+
         # Poster variants
         "poster": "poster_presentation",
-        
+
         # Proceedings variants
         "proceeding": "conference_proceeding",
         "proceedings": "conference_proceeding",
         "conference_proceeding": "conference_proceeding",
         "conference_proceedings": "conference_proceeding",
-        
+
         # Journal variants
         "journal": "journal_article",
         "article": "journal_article",
-        
+
         # Book chapter variants
         "chapter": "book_chapter",
         "bookchapter": "book_chapter",
         "book chapter": "book_chapter",
-        
+
         # Abstract variants
         "abstract": "abstract",
         "conference_abstract": "abstract",
-        
+
         # Already valid types (normalized)
         "conference_presentation": "conference_presentation",
         "poster_presentation": "poster_presentation",
@@ -113,7 +113,7 @@ def normalize_asset_type_from_parser(asset_type: str) -> str:
         "technical_documentation": "technical_documentation",
         "other": "other"
     }
-    
+
     normalized = type_map.get(asset_type_lower, "conference_presentation")
     return normalized
 
@@ -121,18 +121,18 @@ def normalize_asset_type_from_parser(asset_type: str) -> str:
 def normalize_config_mode(mode: str) -> str:
     """
     Normalize config mode string to valid values.
-    
+
     Args:
         mode: Raw mode string from user input or config
-        
+
     Returns:
         Normalized mode (one of VALID_CONFIG_MODES)
     """
     if not mode:
         return "auto"
-    
+
     mode_lower = mode.strip().lower()
-    
+
     # Map variations to valid config modes
     mode_map = {
         "auto": "auto",
@@ -150,11 +150,11 @@ def normalize_config_mode(mode: str) -> str:
         "book_chapter": "book_chapter",
         "bookchapter": "book_chapter",
         "book chapter": "book_chapter",
-        
+
         # Abstract variants
         "abstract": "abstract",
         "conference_abstract": "abstract",
-        
+
         # Technical documentation variants
         "technical_documentation": "technical_documentation",
         "technical document": "technical_documentation",
@@ -171,10 +171,10 @@ def normalize_config_mode(mode: str) -> str:
 def asset_type_to_config_mode(asset_type: str) -> str:
     """
     Convert asset type to config mode.
-    
+
     Args:
         asset_type: Asset type from parser (e.g., "conference_presentation")
-        
+
     Returns:
         Config mode string (e.g., "presentation")
     """
@@ -185,10 +185,10 @@ def asset_type_to_config_mode(asset_type: str) -> str:
 def config_mode_to_asset_type(mode: str) -> str:
     """
     Convert config mode to asset type.
-    
+
     Args:
         mode: Config mode (e.g., "presentation")
-        
+
     Returns:
         Asset type string (e.g., "conference_presentation")
     """

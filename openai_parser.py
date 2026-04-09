@@ -42,19 +42,19 @@ _openai_client_api_key: Optional[str] = None
 def _get_openai_client() -> Optional[OpenAI]:
     """Get or create cached OpenAI client."""
     global _openai_client, _openai_client_api_key
-    
+
     if OpenAI is None:
         return None
-    
+
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
     if not api_key:
         return None
-    
+
     # Create new client if API key changed or client doesn't exist
     if _openai_client is None or _openai_client_api_key != api_key:
         _openai_client = OpenAI(api_key=api_key)
         _openai_client_api_key = api_key
-    
+
     return _openai_client
 
 # ============================================================================
@@ -99,7 +99,7 @@ def parse_citation_with_openai(citation_text: str) -> Dict[str, str]:
         return {"error": "OpenAI client not available"}
 
     model = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
-    
+
     # Check cache (hash the input for cache key)
     citation_hash = hashlib.md5(f"{text}:{model}".encode()).hexdigest()
     # Note: actual caching happens at API level, this is for future enhancement
@@ -119,7 +119,7 @@ def parse_citation_with_openai(citation_text: str) -> Dict[str, str]:
         "IMPORTANT: Do NOT confuse author names (Lastname, Firstname) with titles. If you see 'Author, Name. \"Title Here\"' - the title is \"Title Here\", NOT 'Author, Name'. "
         "Never invent data; prefer empty strings when unsure."
     )
-    
+
     user_msg = f"""
 Citation:
 {text}
@@ -239,7 +239,7 @@ Return JSON with these EXACT keys (always include all keys):
         # Normalize conference_number to digits only
         try:
             if out.get("conference_number"):
-                m = re.match(r"\s*(\d+)", out["conference_number"]) 
+                m = re.match(r"\s*(\d+)", out["conference_number"])
                 if m:
                     out["conference_number"] = m.group(1)
         except Exception:
@@ -375,7 +375,7 @@ Return JSON with these EXACT keys (always include all keys):
                     while removed_any and iterations < 20:  # Safety limit
                         removed_any = False
                         iterations += 1
-                        
+
                         # Try pattern: "Lastname, Initials," or "Initials Lastname,"
                         # Match: Lastname, Initials, (with optional dots in initials)
                         m1 = re.match(r"^\s*[A-Z][A-Za-z'\-]+,\s*[A-Z](?:[A-Z]|\.)*\.?\s*,?\s*", after)
@@ -383,7 +383,7 @@ Return JSON with these EXACT keys (always include all keys):
                         m2 = re.match(r"^\s*(?:[A-Z](?:[A-Z]|\.)\s+)+[A-Z][A-Za-z'\-]+,\s*", after)
                         # Match: "and Lastname, Initials," or "and Initials Lastname,"
                         m3 = re.match(r"^\s*and\s+(?:[A-Z][A-Za-z'\-]+,\s*[A-Z](?:[A-Z]|\.)*\.?\s*,?\s*|(?:[A-Z](?:[A-Z]|\.)\s+)+[A-Z][A-Za-z'\-]+,\s*)", after, flags=re.I)
-                        
+
                         if m1:
                             after = after[m1.end():].lstrip()
                             removed_any = True
@@ -401,7 +401,7 @@ Return JSON with these EXACT keys (always include all keys):
                 if not re.search(r"\)", work) and looks_like_authors:
                     # Split by commas to get segments
                     comma_segments = [s.strip() for s in after.split(',') if s.strip()]
-                    
+
                     # Find where authors end and title begins
                     # Authors typically end with a pattern like "and Lastname" or just "Lastname"
                     # After that, the title begins
@@ -419,7 +419,7 @@ Return JSON with these EXACT keys (always include all keys):
                             if author_end_idx == -1:
                                 author_end_idx = i - 1  # Title starts here
                             break
-                    
+
                     # Extract title segments (everything after authors until we hit conference/location)
                     if author_end_idx >= 0 and author_end_idx < len(comma_segments) - 1:
                         title_parts = []
@@ -440,12 +440,12 @@ Return JSON with these EXACT keys (always include all keys):
                                 break
                             # Add to title parts
                             title_parts.append(seg)
-                        
+
                         if title_parts:
                             potential_title = ", ".join(title_parts).strip().rstrip(' ,')
                             if len(potential_title) > 20:  # Minimum title length
                                 title_candidate = potential_title
-                
+
                 # Split into candidate sentences; use a conservative boundary: period followed by space and a capital and >=3 chars ahead
                 # Fallback to simple split if needed
                 sentences = []
@@ -480,7 +480,7 @@ Return JSON with these EXACT keys (always include all keys):
                     return False
 
                 title_candidate = None
-                
+
                 # For citations without dates in parentheses where title looks like an author,
                 # we need to be more aggressive in finding the actual title
                 if not re.search(r"\)", work) and looks_like_authors:
@@ -496,7 +496,7 @@ Return JSON with these EXACT keys (always include all keys):
                         # (which would indicate an author name)
                         if not re.match(r"^[A-Z][A-Za-z'\-]+,\s*[A-Z]", s_clean):
                             candidates.append((len(s_clean), s_clean))
-                    
+
                     if candidates:
                         # Sort by length (longest first) and take the first one
                         candidates.sort(reverse=True, key=lambda x: x[0])
@@ -512,7 +512,7 @@ Return JSON with these EXACT keys (always include all keys):
                             if not re.match(r"^[A-Z][A-Za-z'\-]+,\s*[A-Z]", s_clean):
                                 title_candidate = s_clean
                                 break
-                
+
                 # If we didn't find a title yet, use the standard approach
                 if not title_candidate:
                     for s in sentences:
@@ -567,7 +567,7 @@ Return JSON with these EXACT keys (always include all keys):
                 title_val.count(',') > 2 or
                 (len(title_val) < 15 and ',' in title_val)
             )
-            
+
             if looks_like_bad_title:
                 # Try to extract quoted text as the title
                 quoted_match = re.search(r'["""]([^"""]+)["""]', text)
@@ -593,5 +593,3 @@ Return JSON with these EXACT keys (always include all keys):
         LOG.error(error_msg)
         LOG.debug(f"Traceback: {traceback.format_exc()}")
         return {"error": error_msg}
-
-

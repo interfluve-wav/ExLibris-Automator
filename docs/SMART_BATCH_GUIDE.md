@@ -72,7 +72,7 @@ Browser will stay open. Use !f for next citation.
 Bot response:
 ```
 📝 Filling next citation in existing browser...
-📋 Asset type: Presentation  
+📋 Asset type: Presentation
 📊 Remaining in queue: 1
 
 The form will refresh with new data.

@@ -318,11 +318,11 @@ def parse_any_citation(citation_text: str) -> Dict[str, str]:
     else:
         # Use manual regex parser as fallback
         return parse_citation(citation_text)
-    
+
     # Handle errors from LLM parsers
     if "error" in llm_data:
         return llm_data
-    
+
     # Normalize LLM results (applies to both OpenAI and DeepSeek)
     try:
         llm_data['published_proceedings_title'] = ''
@@ -674,7 +674,7 @@ def save_citation_to_csv(citation_data: Dict[str, str], output_file: str):
         "proceedings_title", "authors", "year", "date_presented", "published_proceedings_title",
         "conference_name", "conference_number", "conference_location", "research_topics"
     ]
-    
+
     with open(output_file, 'w', newline='', encoding='utf-8') as f:
         # Ignore any extra fields (e.g., 'link') not in fieldnames
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
@@ -690,21 +690,21 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
         except Exception:
             page.goto('https://umassd-researchmanagement.esploro.exlibrisgroup.com/ng;u=%2Fmng%2Faction%2Fhome.do%3FngHome%3Dtrue')
             page.get_by_role('link', name='Deposit Asset').click()
-    
+
     # Select researcher and asset type
     researcher = (citation_data.get('researcher') or os.getenv('DEFAULT_RESEARCHER') or 'Scarano, Frank J').strip()
     page.get_by_role('textbox', name='Researcher').click()
     page.get_by_role('textbox', name='Researcher').fill(researcher)
     page.get_by_text(researcher).click()
-    
+
   # Asset Type Selection
-  
+
     # For Conference Presentation
     page.get_by_role('combobox', name='Select an item from the list').click()
     page.get_by_role('combobox', name='Asset type *').click()
     page.get_by_role('combobox', name='Asset type *').fill('Conference proceeding')   #Change fill type to use other asset type
     page.get_by_label('Publication <strong>').get_by_text('Conference proceeding').click() #Change get by text type to use other asset type
-    page.get_by_role('button', name='Next').click() 
+    page.get_by_role('button', name='Next').click()
     try:
         page.locator('#loadingBlocker').wait_for(state='hidden', timeout=10000)
     except Exception:
@@ -735,7 +735,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             continue
     if not filled_title:
         print("✗ Could not locate a proceedings title field")
-    
+
     #timeout for parsing to complete
     page.wait_for_timeout(1500)
 
@@ -794,7 +794,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
 
     # Add small wait before conference fields
     page.wait_for_timeout(500)
-    
+
     # Robust Conference name fill (plain textbox)
     conf_name_value = citation_data.get('conference_name', '').strip()
     if not conf_name_value:
@@ -829,23 +829,23 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
                 print(f"…retrying Conference name with next selector ({e})")
                 continue
         if not filled_conf_name:
-            
+
             print("✗ Could not locate/fill Conference name")
-    
+
     try:
         page.get_by_role('textbox', name='Conference location').click()
         page.get_by_role('textbox', name='Conference location').fill(citation_data.get('conference_location', ''))
         print("✓ Filled conference location")
     except Exception as e:
         print(f"✗ Conference location error: {e}")
-    
+
     try:
         page.get_by_role('textbox', name='Conference number').click()
         page.get_by_role('textbox', name='Conference number').fill(citation_data.get('conference_number', ''))
         print("✓ Filled conference number")
     except Exception as e:
         print(f"✗ Conference number error: {e}")
-    
+
     # Fill Volume
     try:
         volume = citation_data.get('volume', '').strip()
@@ -855,7 +855,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             print(f"✓ Filled volume: {volume}")
     except Exception as e:
         print(f"✗ Volume error: {e}")
-    
+
     # Fill Start Page
     try:
         start_page = citation_data.get('start_page', '').strip()
@@ -865,7 +865,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             print(f"✓ Filled start page: {start_page}")
     except Exception as e:
         print(f"✗ Start Page error: {e}")
-    
+
     # Fill End Page
     try:
         end_page = citation_data.get('end_page', '').strip()
@@ -875,7 +875,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             print(f"✓ Filled end page: {end_page}")
     except Exception as e:
         print(f"✗ End Page error: {e}")
-    
+
     # Fill Publisher
     try:
         publisher = citation_data.get('publisher_name', '').strip()
@@ -885,10 +885,10 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             print(f"✓ Filled publisher: {publisher}")
     except Exception as e:
         print(f"✗ Publisher error: {e}")
-    
+
     # Fill authors/creators (if enabled)
     fill_authors_if_enabled(page, citation_data)
-    
+
     # Additional 'Description and Research' topics (configurable via slash commands)
     try:
         channel_id = str(citation_data.get('channel_id') or '')
@@ -909,7 +909,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             print("… No additional topics configured for this channel")
     except Exception as e:
         print(f"⚠️ Additional topics fill skipped: {e}")
-    
+
 # Add small wait before conference fields
     page.wait_for_timeout(1000)
 
@@ -924,55 +924,55 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
 
     print(f"✓ Form filled for: {citation_data.get('proceedings_title', '')}")
     print("Add creators manually, then submit when ready.")
-    
+
     if pause_after:
         input("Press Enter to continue...")
 
 def main():
     print("=== Citation Processor ===")
-    
+
     # Ask for citation input
     citation_text = input("Enter your citation: ").strip()
-    
+
     if not citation_text:
         print("No citation entered. Exiting.")
         return
-    
+
     print(f"Processing: {citation_text}")
-    
+
     # Parse citation
     parser_type = os.getenv('CITATION_PARSER', DEFAULT_PARSER).lower()
-    
+
     # Legacy support for USE_DEEPSEEK_PARSER
     if parser_type == DEFAULT_PARSER:
         env_toggle = os.getenv('USE_DEEPSEEK_PARSER')
         if env_toggle == '1':
             parser_type = "deepseek"
-    
+
     if parser_type == "openai":
         print(f"Using OpenAI parser ({os.getenv('OPENAI_MODEL', 'gpt-4o-mini')})")
     elif parser_type == "deepseek":
         print(f"Using DeepSeek parser ({os.getenv('DEEPSEEK_MODEL', 'deepseek-chat')})")
     else:
         print("Using manual regex parser")
-    
+
     parsed_citation = parse_any_citation(citation_text)
-    
+
     if "error" in parsed_citation:
         print(f"Error: {parsed_citation['error']}")
         return
-    
+
     # Save to CSV (overwrites old ones)
     csv_file = 'citationsPresentations.csv'
     save_citation_to_csv(parsed_citation, csv_file)
     print(f"✓ Saved to {csv_file}")
-    
+
     # Show parsed data
     print("\nParsed citation data:")
     for key, value in parsed_citation.items():
         if value:
             print(f"  {key}: {value}")
-    
+
     # Automatically continue to automation after parsing and saving the CSV
 
     if sync_playwright is None:

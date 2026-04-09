@@ -1,6 +1,6 @@
 #!/bin/bash
 # quick_deploy.sh - One-command deployment for Esploro Citation Bot
-# 
+#
 # Usage:
 #   ./quick_deploy.sh systemd     # Deploy with systemd
 #   ./quick_deploy.sh local       # Run locally
@@ -34,14 +34,14 @@ print_error() {
 
 validate_environment() {
     print_header "Validating Environment"
-    
+
     # Check if .env exists
     if [ ! -f ".env" ]; then
         print_error ".env file not found"
         print_warning "Copy docs/ENV_EXAMPLE.md to .env and configure it"
         exit 1
     fi
-    
+
     # Run validation script
     if [ -f "deployment/validate_env.py" ]; then
         python3 deployment/validate_env.py
@@ -52,29 +52,29 @@ validate_environment() {
     else
         print_warning "Validation script not found, skipping detailed checks"
     fi
-    
+
     print_success "Environment validated successfully"
 }
 
 deploy_systemd() {
     print_header "Deploying with systemd"
-    
+
     # Check if running as root or with sudo
     if [ "$EUID" -ne 0 ]; then
         print_error "Please run with sudo for systemd deployment"
         exit 1
     fi
-    
+
     # Validate environment first
     validate_environment
-    
+
     # Create service user if doesn't exist
     if ! id "espbot" &>/dev/null; then
         print_header "Creating Service User"
         useradd -r -m -s /bin/bash espbot
         print_success "Created user: espbot"
     fi
-    
+
     # Copy files to /opt if not already there
     if [ "$PWD" != "/opt/esploro-bot" ]; then
         print_header "Copying to /opt/esploro-bot"
@@ -83,7 +83,7 @@ deploy_systemd() {
         chown -R espbot:espbot /opt/esploro-bot
         print_success "Files copied to /opt/esploro-bot"
     fi
-    
+
     # Install Python dependencies
     print_header "Installing Dependencies"
     cd /opt/esploro-bot
@@ -91,14 +91,14 @@ deploy_systemd() {
     sudo -u espbot .venv/bin/pip install -r requirements.txt
     sudo -u espbot .venv/bin/python -m playwright install chromium
     print_success "Dependencies installed"
-    
+
     # Install systemd service
     print_header "Installing systemd Service"
     cp deployment/esploro-bot.service /etc/systemd/system/
     systemctl daemon-reload
     systemctl enable esploro-bot
     systemctl start esploro-bot
-    
+
     print_success "systemd deployment complete!"
     echo ""
     echo "View logs: sudo journalctl -u esploro-bot -f"
@@ -108,16 +108,16 @@ deploy_systemd() {
 
 deploy_local() {
     print_header "Starting Local Deployment"
-    
+
     # Validate environment first
     validate_environment
-    
+
     # Check if start script exists
     if [ ! -f "start_smart_batch.sh" ]; then
         print_error "start_smart_batch.sh not found"
         exit 1
     fi
-    
+
     # Run the start script
     print_header "Starting Bot"
     ./start_smart_batch.sh

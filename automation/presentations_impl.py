@@ -95,11 +95,11 @@ def parse_any_citation(citation_text: str) -> Dict[str, str]:
         print("[parser] Using manual regex parser")
         # Use manual regex parser as fallback
         return parse_citation(citation_text)
-    
+
     # Handle errors from LLM parsers
     if "error" in llm_data:
         return llm_data
-    
+
     # Normalize LLM results (applies to both OpenAI and DeepSeek)
     try:
         llm_data['published_proceedings_title'] = ''
@@ -596,7 +596,7 @@ def parse_citation(citation_text: str) -> Dict[str, str]:
 def parse_authors_list(authors_string: str) -> List[Dict[str, str]]:
     """
     Parse authors into selection targets with last_name + first_initial.
-    
+
     Examples:
     - "H.W. Wallace" -> "Wallace"
     - "Y.J. Leong" -> "Leong"
@@ -604,18 +604,18 @@ def parse_authors_list(authors_string: str) -> List[Dict[str, str]]:
     """
     if not authors_string:
         return []
-    
+
     print(f"[DEBUG] Raw authors: '{authors_string}'")
-    
+
     # Remove "et al.", "and"
     authors_string = re.sub(r'\s*et\s+al\.?\s*$', '', authors_string, flags=re.I)
     authors_string = re.sub(r'\s+&\s+', ', ', authors_string)
     authors_string = re.sub(r'\s+and\s+', ', ', authors_string, flags=re.I)
     authors_string = authors_string.strip(' .,')
-    
+
     # Split by comma
     parts = [p.strip() for p in authors_string.split(',') if p.strip()]
-    
+
     targets: List[Dict[str, str]] = []
     pairs = re.findall(r"([A-Za-z][A-Za-z' -]+),\s*([A-Z])(?:\s*\.|$)", authors_string)
     if pairs:
@@ -633,7 +633,7 @@ def parse_authors_list(authors_string: str) -> List[Dict[str, str]]:
                 if last_name and re.match(r'^[A-Z][a-z]', last_name):
                     targets.append({"last_name": last_name, "first_initial": ""})
                     print(f"[DEBUG] '{part}' -> '{last_name}'")
-    
+
     print(f"[DEBUG] Found {len(targets)} names: {[t['last_name'] for t in targets]}")
     return targets
 
@@ -645,14 +645,14 @@ def fill_authors(page, authors_string: str) -> bool:
     if not authors_string or not authors_string.strip():
         print("… No authors to fill")
         return False
-    
+
     author_targets = parse_authors_list(authors_string)
     if not author_targets:
         print("✗ Could not parse author names")
         return False
-    
+
     print(f"Filling {len(author_targets)} author(s): {', '.join(t['last_name'] for t in author_targets)}")
-    
+
     # Load delay between authors (helps when site lags)
     author_delay_ms = 1000
     try:
@@ -664,12 +664,12 @@ def fill_authors(page, authors_string: str) -> bool:
                 author_delay_ms = int(bot_config.get('author_add_delay_ms', 1000))
     except Exception:
         pass
-    
+
     try:
         # Click "Add creator" button
         page.get_by_role('button', name=' Add creator').click()
         page.wait_for_timeout(500)
-        
+
         added_count = 0
         for idx, target in enumerate(author_targets):
             last_name = target.get("last_name", "").strip()
@@ -678,12 +678,12 @@ def fill_authors(page, authors_string: str) -> bool:
                 # Click the textbox
                 page.get_by_role('textbox', name='Choose researcher *').click(timeout=3000)
                 page.wait_for_timeout(150)
-                
+
                 # Clear and fill with last name
                 page.get_by_role('textbox', name='Choose researcher *').fill('')
                 page.get_by_role('textbox', name='Choose researcher *').fill(last_name)
                 page.wait_for_timeout(800)  # Wait for dropdown
-                
+
                 # Score visible options to choose the best robust match.
                 try:
                     target = {"last_name": last_name, "first_initial": first_initial}
@@ -742,16 +742,16 @@ def fill_authors(page, authors_string: str) -> bool:
                         continue
 
                     page.wait_for_timeout(150)
-                    
+
                     # Click "Add" button
                     page.get_by_role('button', name='Add', exact=True).click(timeout=2000)
                     # Delay between authors (configurable via author_add_delay_ms in bot_config.json)
                     page.wait_for_timeout(author_delay_ms)
-                    
+
                     added_count += 1
                     shown = f"{last_name}, {first_initial}" if first_initial else last_name
                     print(f"  ✓ {idx + 1}/{len(author_targets)}: {shown}")
-                    
+
                 except Exception:
                     shown = f"{last_name}, {first_initial}" if first_initial else last_name
                     print(f"  ✗ {idx + 1}/{len(author_targets)}: {shown} (not found)")
@@ -760,22 +760,22 @@ def fill_authors(page, authors_string: str) -> bool:
                         page.get_by_role('textbox', name='Choose researcher *').fill('')
                     except Exception:
                         pass
-                
+
             except Exception as e:
                 shown = f"{last_name}, {first_initial}" if first_initial else last_name
                 print(f"  ✗ Error with {shown}: {e}")
                 continue
-        
+
         # Click "Add and close"
         try:
             page.get_by_role('button', name='Add and close').click(timeout=3000)
             page.wait_for_timeout(300)
         except Exception as e:
             print(f"⚠️  Could not click 'Add and close': {e}")
-        
+
         print(f"✓ Added {added_count}/{len(author_targets)} author(s)")
         return added_count > 0
-        
+
     except Exception as e:
         print(f"✗ Error filling authors: {e}")
         return False
@@ -786,7 +786,7 @@ def save_citation_to_csv(citation_data: Dict[str, str], output_file: str):
         "proceedings_title", "authors", "year", "date_presented", "published_proceedings_title",
         "conference_name", "conference_number", "conference_location", "research_topics"
     ]
-    
+
     with open(output_file, 'w', newline='', encoding='utf-8') as f:
         # Ignore any extra fields (e.g., 'link') not in fieldnames
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
@@ -802,16 +802,16 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
         except Exception:
             page.goto('https://umassd-researchmanagement.esploro.exlibrisgroup.com/ng;u=%2Fmng%2Faction%2Fhome.do%3FngHome%3Dtrue')
             page.get_by_role('link', name='Deposit Asset').click()
-    
-    
+
+
     # Select researcher and asset type
     researcher = (citation_data.get('researcher') or os.getenv('DEFAULT_RESEARCHER') or 'Scarano, Frank J').strip()
     page.get_by_role('textbox', name='Researcher').click()
     page.get_by_role('textbox', name='Researcher').fill(researcher)
     page.get_by_text(researcher).click()
-    
+
   # Asset Type Selection
-  
+
     # For Conference Presentation
     page.get_by_role('combobox', name='Select an item from the list').click()
     page.get_by_role('combobox', name='Asset type *').click()
@@ -839,7 +839,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
     # Fill citation data
     page.get_by_role('textbox', name='Conference presentation title *').click()
     page.get_by_role('textbox', name='Conference presentation title *').fill(citation_data.get('proceedings_title', ''))
-    
+
     #timeout for parsing to complete
     page.wait_for_timeout(1500)
 
@@ -909,7 +909,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
 
     # Add small wait before conference fields
     page.wait_for_timeout(500)
-    
+
     # Robust Conference name fill (plain textbox)
     conf_name_value = citation_data.get('conference_name', '').strip()
     if not conf_name_value:
@@ -988,21 +988,21 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
                     print("✓ Conference name filled (JS fallback)")
                 except Exception:
                     print("✗ Could not locate/fill Conference name")
-    
+
     try:
         page.get_by_role('textbox', name='Conference location').click()
         page.get_by_role('textbox', name='Conference location').fill(citation_data.get('conference_location', ''))
         print("✓ Filled conference location")
     except Exception as e:
         print(f"✗ Conference location error: {e}")
-    
+
     try:
         page.get_by_role('textbox', name='Conference number').click()
         page.get_by_role('textbox', name='Conference number').fill(citation_data.get('conference_number', ''))
         print("✓ Filled conference number")
     except Exception as e:
         print(f"✗ Conference number error: {e}")
-    
+
     # Fill authors/creators (if enabled)
     try:
         # Check if auto-fill authors is enabled in config
@@ -1016,7 +1016,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
                     auto_fill_enabled = bot_config.get('auto_fill_authors', True)
         except Exception:
             pass  # If config can't be read, default to True
-        
+
         if auto_fill_enabled:
             authors = citation_data.get('authors', '').strip()
             if authors:
@@ -1027,7 +1027,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             print("… Author automation disabled (skip filling)")
     except Exception as e:
         print(f"⚠️ Authors fill error: {e}")
-    
+
     # Additional 'Description and Research' topics (configurable via slash commands)
     try:
         channel_id = str(citation_data.get('channel_id') or '')
@@ -1048,14 +1048,14 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             print("… No additional topics configured for this channel")
     except Exception as e:
         print(f"⚠️ Additional topics fill skipped: {e}")
-    
+
     # Incorporate additional field - (Research topics)
     #page.get_by_role('combobox', name='Select an item from the list').click()
     #page.get_by_role('combobox', name='Research topics').fill('bioengineering')
     #page.get_by_text('bioengineering').click()
     #page.get_by_role('combobox', name='Research topics').fill('orthopedics')
     #page.get_by_text('orthopedics').click()
-    
+
     # Research Topics
 #    page.get_by_role("textbox", name="Research topics").fill("Nursing")
 #    page.get_by_role("textbox", name="Research topics").press("ArrowDown")
@@ -1073,49 +1073,49 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
 
 def main():
     print("=== Citation Processor ===")
-    
+
     # Ask for citation input
     citation_text = input("Enter your citation: ").strip()
-    
+
     if not citation_text:
         print("No citation entered. Exiting.")
         return
-    
+
     print(f"Processing: {citation_text}")
-    
+
     # Parse citation
     parser_type = os.getenv('CITATION_PARSER', DEFAULT_PARSER).lower()
-    
+
     # Legacy support for USE_DEEPSEEK_PARSER
     if parser_type == DEFAULT_PARSER:
         env_toggle = os.getenv('USE_DEEPSEEK_PARSER')
         if env_toggle == '1':
             parser_type = "deepseek"
-    
+
     if parser_type == "openai":
         print(f"Using OpenAI parser ({os.getenv('OPENAI_MODEL', 'gpt-4o-mini')})")
     elif parser_type == "deepseek":
         print(f"Using DeepSeek parser ({os.getenv('DEEPSEEK_MODEL', 'deepseek-chat')})")
     else:
         print("Using manual regex parser")
-    
+
     parsed_citation = parse_any_citation(citation_text)
-    
+
     if "error" in parsed_citation:
         print(f"Error: {parsed_citation['error']}")
         return
-    
+
     # Save to CSV (overwrites old ones)
     csv_file = 'citationsPresentations.csv'
     save_citation_to_csv(parsed_citation, csv_file)
     print(f"✓ Saved to {csv_file}")
-    
+
     # Show parsed data
     print("\nParsed citation data:")
     for key, value in parsed_citation.items():
         if value:
             print(f"  {key}: {value}")
-    
+
     # Automatically continue to automation after parsing and saving the CSV
 
     if sync_playwright is None:

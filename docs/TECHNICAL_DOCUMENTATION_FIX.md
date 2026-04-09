@@ -13,7 +13,7 @@ The `technical_documentation` asset type wasn't working properly across the syst
 
 **Fixed validation in 4 locations:**
 - Line 313, 315: `on_message` handler ✅ (already had it)
-- Line 639, 641: `!add` command ✅ (already had it)  
+- Line 639, 641: `!add` command ✅ (already had it)
 - **Line 957, 962**: `/add` slash command - **FIXED**
 - **Line 1355, 1357**: `add_citation_via_gui()` - **FIXED**
 
@@ -84,7 +84,7 @@ The fix was verified with the logs showing:
 ### Technical Documentation Form Fields
 - **Asset title \***: Main document title (mapped from `proceedings_title` or `asset_title`)
 - **Publisher name**: Organization/company name
-- **Report number**: Document/report identifier  
+- **Report number**: Document/report identifier
 - **DOI**: Digital Object Identifier
 - **Date**: Publication/presentation date
 - **Language**: Publication language
@@ -123,7 +123,7 @@ All asset types now properly validated:
 VALID_CONFIG_MODES = {
     "auto",
     "presentation",
-    "poster", 
+    "poster",
     "book_chapter",
     "journal_article",
     "proceedings",

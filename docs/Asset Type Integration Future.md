@@ -63,28 +63,28 @@ This function parses citation text and returns structured data.
 def parse_any_citation(citation_text: str) -> Dict[str, str]:
     """Parse using OpenAI or manual regex parser based on configuration."""
     parser_type = os.getenv('CITATION_PARSER', DEFAULT_PARSER).lower()
-    
+
     if parser_type == "openai":
         try:
             model_name = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
             print(f"[parser] Using OpenAI model: {model_name}")
         except Exception:
             print("[parser] Using OpenAI (model unknown)")
-        
+
         if not parse_citation_with_openai:
             return {"error": "OpenAI parser not available"}
-        
+
         llm_data = parse_citation_with_openai(citation_text) or {}
         if not llm_data:
             return {"error": "OpenAI returned empty/invalid result"}
     else:
         print("[parser] Using manual regex parser")
         return parse_citation(citation_text)
-    
+
     # Handle errors from LLM parsers
     if "error" in llm_data:
         return llm_data
-    
+
     # Normalize LLM results for your asset type
     try:
         # Clear fields not relevant to this asset type
@@ -94,47 +94,47 @@ def parse_any_citation(citation_text: str) -> Dict[str, str]:
         llm_data['conference_date_from'] = ''
         llm_data['conference_date_to'] = ''
         llm_data['published_proceedings_title'] = ''
-        
+
         # Map asset-specific fields
         # Example: if your asset type has a "report_number" field
         # llm_data['report_number'] = llm_data.get('number', '')
-        
+
         # Normalize DOI (strip URL prefix)
         if llm_data.get('doi'):
             m = re.search(r"(10\.\d{4,9}/\S+)$", str(llm_data['doi']))
             if m:
                 llm_data['doi'] = m.group(1)
-        
+
         # Ensure year is set
         if not llm_data.get('year'):
             m_year = re.search(r'\b(\d{4})\b', citation_text)
             if m_year:
                 llm_data['year'] = m_year.group(1)
-        
+
         # Set date_presented to year for compatibility
         llm_data['date_presented'] = llm_data.get('year', '')
-        
+
     except Exception:
         pass
-    
+
     # Fallback: if LLM misses critical fields, use manual parser
     needs_fallback = (
         not llm_data.get('proceedings_title')
         or len(llm_data.get('proceedings_title', '').strip()) < 5
         or not llm_data.get('publisher_name')
     )
-    
+
     if needs_fallback:
         try:
             manual = parse_citation(citation_text)
         except Exception:
             manual = {}
-        
+
         # Fill missing fields from manual parse
         for k in ['proceedings_title', 'publisher_name', 'authors', 'year']:
             if not llm_data.get(k) and manual.get(k):
                 llm_data[k] = manual[k]
-    
+
     return llm_data
 ```
 
@@ -146,44 +146,44 @@ Regex-based parser as fallback. Study your citation format carefully.
 ```python
 def parse_citation(citation_text: str) -> Dict[str, str]:
     """Parse [asset type] citations manually using regex.
-    
+
     Example format:
     Authors. (YYYY). Title. Publisher/Source, Additional Info.
     """
     text = (citation_text or "").strip()
     if not text:
         return {"error": "Empty citation"}
-    
+
     # Extract year: (YYYY)
     m_date = re.search(r"\((\d{4})\)", text)
     year = m_date.group(1) if m_date else ""
-    
+
     # Extract authors (everything before the date)
     authors = ""
     if m_date:
         date_start = m_date.start()
         authors = text[:date_start].strip().rstrip(' .,')
-    
+
     # Extract title (between year and next section)
     title = ""
     if m_date:
         after_date = text[m_date.end():].strip()
         if after_date.startswith('.'):
             after_date = after_date[1:].strip()
-        
+
         first_period = after_date.find('.')
         if first_period > 0:
             title = after_date[:first_period].strip()
-    
+
     # Extract additional fields as needed for your asset type
     # Example: publisher_name, volume, DOI, etc.
-    
+
     # Extract DOI if present
     doi = ""
     m_doi = re.search(r"(?:DOI[:\s]*)?(10\.\d{4,9}/\S+)", text, flags=re.I)
     if m_doi:
         doi = m_doi.group(1)
-    
+
     # Return all fields (use empty strings for missing data)
     return {
         "proceedings_title": title,
@@ -238,7 +238,7 @@ def save_citation_to_csv(citation_data: Dict[str, str], output_file: str):
         "publisher_name", "doi", "research_topics"
         # Add asset-specific fields
     ]
-    
+
     with open(output_file, 'w', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
         writer.writeheader()
@@ -251,11 +251,11 @@ def save_citation_to_csv(citation_data: Dict[str, str], output_file: str):
 
 **Template:**
 ```python
-def process_citation(page, citation_data: Dict[str, str], 
-                    pause_after: bool = True, 
+def process_citation(page, citation_data: Dict[str, str],
+                    pause_after: bool = True,
                     start_from_home: bool = True):
     """Fill one citation for [Asset Type] asset type"""
-    
+
     # Navigate to deposit wizard
     if start_from_home:
         try:
@@ -263,42 +263,42 @@ def process_citation(page, citation_data: Dict[str, str],
         except Exception:
             page.goto('https://umassd-researchmanagement.esploro.exlibrisgroup.com/ng;u=%2Fmng%2Faction%2Fhome.do%3FngHome%3Dtrue')
             page.get_by_role('link', name='Deposit Asset').click()
-    
+
     # Select researcher
-    researcher = (citation_data.get('researcher') or 
-                 os.getenv('DEFAULT_RESEARCHER') or 
+    researcher = (citation_data.get('researcher') or
+                 os.getenv('DEFAULT_RESEARCHER') or
                  'Scarano, Frank J').strip()
     page.get_by_role('textbox', name='Researcher').click()
     page.get_by_role('textbox', name='Researcher').fill(researcher)
     page.get_by_text(researcher).click()
-    
+
     # Asset Type Selection
     page.get_by_role('combobox', name='Select an item from the list').click()
     page.get_by_role('combobox', name='Asset type *').click()
     page.get_by_role('combobox', name='Asset type *').fill('[Your Asset Type Text]')
     page.get_by_label('Publication <strong>').get_by_text('[Your Asset Type]').click()
     page.get_by_role('button', name='Next').click()
-    
+
     # Wait for loading
     try:
         page.locator('#loadingBlocker').wait_for(state='hidden', timeout=10000)
     except Exception:
         page.wait_for_timeout(300)
-    
+
     # Fill main title field
     # IMPORTANT: Update field name to match Esploro form
     page.get_by_role('textbox', name='[Title Field Name] *').click()
     page.get_by_role('textbox', name='[Title Field Name] *').fill(
         citation_data.get('proceedings_title', '')
     )
-    
+
     # Add timeout for auto-parsing
     page.wait_for_timeout(1500)
-    
+
     # Fill additional fields specific to your asset type
     # Example: Report Number, Publisher, Volume, etc.
     # Use try-except blocks for each field
-    
+
     try:
         field_value = citation_data.get('your_field', '').strip()
         if field_value:
@@ -307,14 +307,14 @@ def process_citation(page, citation_data: Dict[str, str],
             print(f"✓ Filled [field name]: {field_value}")
     except Exception as e:
         print(f"✗ [Field name] error: {e}")
-    
+
     # Add Date section
     try:
         page.get_by_role('button', name=' Add Date').click()
         page.get_by_role('combobox', name='Date type *').click()
         page.get_by_label('Recent', exact=True).get_by_text('[Date Type]').click()
         page.get_by_role('textbox', name='Choose date *').click()
-        
+
         # Prefer MM/DD/YYYY, then MM/YYYY, else fallback to YYYY
         date_to_fill = (
             citation_data.get('date_presented_mmddyyyy')
@@ -326,30 +326,30 @@ def process_citation(page, citation_data: Dict[str, str],
         print("✓ Added date")
     except Exception as e:
         print(f"✗ Failed to add date: {e}")
-    
+
     # Wait for loading blocker
     try:
         page.locator('#loadingBlocker').wait_for(state='hidden', timeout=3000)
     except Exception:
         page.wait_for_timeout(500)
-    
+
     # Add Language
     page.get_by_role('combobox', name='Language').click()
     page.get_by_label('Recent', exact=True).get_by_text('English', exact=True).click()
-    
+
     # Close language dropdown
     try:
         page.keyboard.press('Escape')
         page.wait_for_timeout(100)
     except Exception:
         pass
-    
+
     try:
         page.mouse.click(5, 5)
         page.wait_for_timeout(100)
     except Exception:
         pass
-    
+
     # Fill DOI if present
     try:
         doi = (citation_data.get('doi') or '').strip()
@@ -359,7 +359,7 @@ def process_citation(page, citation_data: Dict[str, str],
             print(f"✓ Filled DOI: {doi}")
     except Exception as e:
         print(f"⚠️ DOI fill skipped: {e}")
-    
+
     # Additional 'Description and Research' topics
     try:
         channel_id = str(citation_data.get('channel_id') or '')
@@ -379,10 +379,10 @@ def process_citation(page, citation_data: Dict[str, str],
             print("… No additional topics configured for this channel")
     except Exception as e:
         print(f"⚠️ Additional topics fill skipped: {e}")
-    
+
     print(f"✓ Form filled for: {citation_data.get('proceedings_title', '')}")
     print("Add creators manually, then submit when ready.")
-    
+
     if pause_after:
         input("Press Enter to continue...")
 ```
@@ -392,54 +392,54 @@ def process_citation(page, citation_data: Dict[str, str],
 ```python
 def main():
     print("=== Citation Processor ===")
-    
+
     citation_text = input("Enter your citation: ").strip()
-    
+
     if not citation_text:
         print("No citation entered. Exiting.")
         return
-    
+
     print(f"Processing: {citation_text}")
-    
+
     # Parse citation
     parsed_citation = parse_any_citation(citation_text)
-    
+
     if "error" in parsed_citation:
         print(f"Error: {parsed_citation['error']}")
         return
-    
+
     # Save to CSV
     csv_file = 'citations[AssetType].csv'
     save_citation_to_csv(parsed_citation, csv_file)
     print(f"✓ Saved to {csv_file}")
-    
+
     # Show parsed data
     print("\nParsed citation data:")
     for key, value in parsed_citation.items():
         if value:
             print(f"  {key}: {value}")
-    
+
     # Start browser automation
     if sync_playwright is None:
         print("Playwright not installed; skipping automation.")
         return
-    
+
     print("\n=== Starting browser automation ===")
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
         context = browser.new_context()
         page = context.new_page()
-        
+
         # Login
         page.goto('https://umassd-researchmanagement.esploro.exlibrisgroup.com/mng/login')
         page.get_by_role('textbox', name='User Name').fill('your_username')
         page.get_by_role('textbox', name='Password').fill('your_password')
         page.get_by_role('button', name='Login').click()
         page.goto('https://umassd-researchmanagement.esploro.exlibrisgroup.com/ng;u=%2Fmng%2Faction%2Fhome.do%3FngHome%3Dtrue')
-        
+
         # Process citation
         process_citation(page, parsed_citation, pause_after=True)
-    
+
     print("Done!")
 
 if __name__ == "__main__":
@@ -682,8 +682,8 @@ When implementing `process_citation()`, you'll need to know Esploro's field name
 
 **Citation format:**
 ```
-Smith, J., & Doe, A. (2024). Advanced Machine Learning Techniques. 
-Tech Report TR-2024-001, MIT Computer Science Department. 
+Smith, J., & Doe, A. (2024). Advanced Machine Learning Techniques.
+Tech Report TR-2024-001, MIT Computer Science Department.
 https://doi.org/10.1234/tr.2024.001
 ```
 
@@ -696,7 +696,7 @@ https://doi.org/10.1234/tr.2024.001
 
 **Citation format:**
 ```
-Johnson, M. (2023). Climate Change Temperature Dataset. 
+Johnson, M. (2023). Climate Change Temperature Dataset.
 figshare. Dataset. https://doi.org/10.6084/m9.figshare.12345678
 ```
 
@@ -762,4 +762,3 @@ After completing integration:
 - **Regex Testing**: https://regex101.com/
 - **OpenAI API Docs**: https://platform.openai.com/docs/
 - **Integration Steps**: See `Web App & Discord Bot Integration Steps.md`
-

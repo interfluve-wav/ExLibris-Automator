@@ -44,11 +44,11 @@ def parse_any_citation(citation_text: str) -> Dict[str, str]:
         print("[parser] Using manual regex parser")
         # Use manual regex parser as fallback
         return parse_citation(citation_text)
-    
+
     # Handle errors from LLM parsers
     if "error" in llm_data:
         return llm_data
-    
+
     # Normalize LLM results for abstracts
     try:
         # Clear conference-related fields for abstracts
@@ -58,11 +58,11 @@ def parse_any_citation(citation_text: str) -> Dict[str, str]:
         llm_data['conference_location'] = ''
         llm_data['conference_date_from'] = ''
         llm_data['conference_date_to'] = ''
-        
+
         # Ensure abstract title is in proceedings_title field
         if not llm_data.get('proceedings_title'):
             llm_data['proceedings_title'] = llm_data.get('abstract_title', '')
-        
+
         # Normalize numeric fields
         for field in ['volume', 'issue', 'start_page', 'end_page']:
             val = llm_data.get(field, '')
@@ -71,20 +71,20 @@ def parse_any_citation(citation_text: str) -> Dict[str, str]:
                 m_num = re.search(r'(\d+)', str(val))
                 if m_num:
                     llm_data[field] = m_num.group(1)
-        
+
         # Clean DOI
         if llm_data.get('doi'):
             doi = llm_data['doi']
             # Remove "DOI:" prefix if present
             doi = re.sub(r'^(?:DOI[:\s]*)', '', doi, flags=re.I)
             llm_data['doi'] = doi.strip()
-        
+
         # Ensure year is set
         if not llm_data.get('year'):
             m_year = re.search(r'\b(\d{4})\b', citation_text)
             if m_year:
                 llm_data['year'] = m_year.group(1)
-        
+
         llm_data['date_presented'] = llm_data.get('year', '')
     except Exception:
         pass
@@ -105,10 +105,10 @@ def parse_any_citation(citation_text: str) -> Dict[str, str]:
             manual = parse_citation(citation_text)
         except Exception:
             manual = {}
-        
+
         # Fill missing fields from manual parse
-        for k in ['proceedings_title', 'publisher_name', 'volume', 'issue', 
-                  'start_page', 'end_page', 'doi', 'issn', 'eissn', 'year', 
+        for k in ['proceedings_title', 'publisher_name', 'volume', 'issue',
+                  'start_page', 'end_page', 'doi', 'issn', 'eissn', 'year',
                   'date_presented', 'article_number']:
             if not llm_data.get(k) and manual.get(k):
                 llm_data[k] = manual[k]
@@ -153,13 +153,13 @@ def parse_citation(citation_text: str) -> Dict[str, str]:
     # Extract year: (YYYY) - simpler format for abstracts (no month/day typically)
     m_date = re.search(r"\((\d{4})\)", text)
     year = m_date.group(1) if m_date else ""
-    
+
     # Extract authors (everything before the date)
     authors = ""
     if m_date:
         date_start = m_date.start()
         authors = text[:date_start].strip().rstrip(' .,')
-    
+
     # Extract abstract title (between year and the publisher/journal section)
     abstract_title = ""
     after_title = ""
@@ -169,7 +169,7 @@ def parse_citation(citation_text: str) -> Dict[str, str]:
         # Skip leading period if present (e.g., "(2024). Title..." -> "Title...")
         if after_date.startswith('.'):
             after_date = after_date[1:].strip()
-        
+
         # Title ends at the next period (before publisher section)
         first_period = after_date.find('.')
         if first_period > 0:
@@ -185,7 +185,7 @@ def parse_citation(citation_text: str) -> Dict[str, str]:
             else:
                 # Fallback: entire text is the title
                 abstract_title = after_date.strip()
-    
+
     # Extract publisher name, volume, issue, pages
     publisher_name = ""
     volume = ""
@@ -193,12 +193,12 @@ def parse_citation(citation_text: str) -> Dict[str, str]:
     start_page = ""
     end_page = ""
     article_number = ""
-    
+
     # Pattern: Publisher Name, Volume(Issue), pp. start-end
     # Examples:
     #   Publisher Name, 12(3), pp. 23–40
     #   Publisher Name, 12, 23-40
-    
+
     # Try to match publisher with volume/issue/pages
     m_pub = re.search(r"^\s*([^,]+),\s*(\d+)(?:\s*\((\d+)\))?\s*,?\s*(?:pp\.?\s*)?(\d+)\s*[-–]\s*(\d+)", after_title)
     if m_pub:
@@ -212,13 +212,13 @@ def parse_citation(citation_text: str) -> Dict[str, str]:
         m_name = re.match(r"^\s*([^,]+),", after_title)
         if m_name:
             publisher_name = m_name.group(1).strip()
-    
+
     # Extract DOI if present
     doi = ""
     m_doi = re.search(r"(?:DOI[:\s]*)?(10\.\d{4,9}/\S+)", text, flags=re.I)
     if m_doi:
         doi = m_doi.group(1)
-    
+
     # Extract ISSN/eISSN if present
     issn = ""
     eissn = ""
@@ -228,12 +228,12 @@ def parse_citation(citation_text: str) -> Dict[str, str]:
     m_eissn = re.search(r"\bE-?ISSN[:\s]*([0-9]{4}-?[0-9]{3}[0-9Xx])", text, flags=re.I)
     if m_eissn:
         eissn = m_eissn.group(1).upper()
-    
+
     # Extract article number if present
     m_article = re.search(r"\b(?:Article\s+(?:No|Number)[:\s]*|Art\.\s*)?(\d{6,})\b", text, flags=re.I)
     if m_article:
         article_number = m_article.group(1)
-    
+
     # Extract page numbers if present (fallback)
     if not start_page:
         m_pages = re.search(r"(?:pp?\.?\s*)?(\d+)(?:\s*[-–]\s*(\d+))?", text, flags=re.I)
@@ -241,12 +241,12 @@ def parse_citation(citation_text: str) -> Dict[str, str]:
             start_page = m_pages.group(1)
             if m_pages.group(2):
                 end_page = m_pages.group(2)
-    
+
     # Date fields for compatibility
     date_presented = year
     date_presented_mmddyyyy = ""
     date_presented_mmyyyy = ""
-    
+
     return {
         "proceedings_title": abstract_title,  # Main title field
         "abstract_title": abstract_title,
@@ -283,7 +283,7 @@ def save_citation_to_csv(citation_data: Dict[str, str], output_file: str):
         "volume", "issue", "start_page", "end_page", "article_number",
         "doi", "issn", "eissn", "research_topics"
     ]
-    
+
     with open(output_file, 'w', newline='', encoding='utf-8') as f:
         # Ignore any extra fields (e.g., 'link') not in fieldnames
         writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction='ignore')
@@ -299,14 +299,14 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
         except Exception:
             page.goto('https://umassd-researchmanagement.esploro.exlibrisgroup.com/ng;u=%2Fmng%2Faction%2Fhome.do%3FngHome%3Dtrue')
             page.get_by_role('link', name='Deposit Asset').click()
-    
-    
+
+
     # Select researcher and asset type
     researcher = (citation_data.get('researcher') or os.getenv('DEFAULT_RESEARCHER') or 'Scarano, Frank J').strip()
     page.get_by_role('textbox', name='Researcher').click()
     page.get_by_role('textbox', name='Researcher').fill(researcher)
     page.get_by_text(researcher).click()
-    
+
     # Asset Type Selection - Abstract
     page.get_by_role('combobox', name='Select an item from the list').click()
     page.get_by_role('combobox', name='Asset type *').click()
@@ -333,7 +333,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             print(f"✓ Filled start page: {start_page}")
     except Exception as e:
         print(f"✗ Start page error: {e}")
-    
+
     # Fill End Page
     try:
         end_page = citation_data.get('end_page', '').strip()
@@ -353,7 +353,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             print(f"✓ Filled Volume: {volume}")
     except Exception as e:
         print(f"✗ Volume error: {e}")
-    
+
 
     # Fill Issue
     try:
@@ -408,7 +408,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
             print(f"✓ Filled eISSN: {eissn}")
     except Exception as e:
         print(f"⚠️ eISSN fill skipped: {e}")
- 
+
 
 
     #timeout for parsing to complete
@@ -455,7 +455,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
         page.wait_for_timeout(100)
     except Exception:
         pass
-    
+
     # Additional 'Description and Research' topics (configurable via slash commands)
     try:
         channel_id = str(citation_data.get('channel_id') or '')
@@ -480,56 +480,56 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
     print(f"✓ Form filled for: {citation_data.get('proceedings_title', '')}")
     # Fill authors/creators (if enabled)
     fill_authors_if_enabled(page, citation_data)
-    
+
     print("Add creators manually, then submit when ready.")
     if pause_after:
         input("Press Enter to continue...")
 
 def main():
     print("=== Citation Processor ===")
-    
+
     # Ask for citation input
     citation_text = input("Enter your citation: ").strip()
-    
+
     if not citation_text:
         print("No citation entered. Exiting.")
         return
-    
+
     print(f"Processing: {citation_text}")
-    
+
     # Parse citation
     parser_type = os.getenv('CITATION_PARSER', DEFAULT_PARSER).lower()
-    
+
     # Legacy support for USE_DEEPSEEK_PARSER
     if parser_type == DEFAULT_PARSER:
         env_toggle = os.getenv('USE_DEEPSEEK_PARSER')
         if env_toggle == '1':
             parser_type = "deepseek"
-    
+
     if parser_type == "openai":
         print(f"Using OpenAI parser ({os.getenv('OPENAI_MODEL', 'gpt-4o-mini')})")
     elif parser_type == "deepseek":
         print(f"Using DeepSeek parser ({os.getenv('DEEPSEEK_MODEL', 'deepseek-chat')})")
     else:
         print("Using manual regex parser")
-    
+
     parsed_citation = parse_any_citation(citation_text)
-    
+
     if "error" in parsed_citation:
         print(f"Error: {parsed_citation['error']}")
         return
-    
+
     # Save to CSV (overwrites old ones)
     csv_file = 'citationsAbstracts.csv'
     save_citation_to_csv(parsed_citation, csv_file)
     print(f"✓ Saved to {csv_file}")
-    
+
     # Show parsed data
     print("\nParsed citation data:")
     for key, value in parsed_citation.items():
         if value:
             print(f"  {key}: {value}")
-    
+
     # Automatically continue to automation after parsing and saving the CSV
 
     if sync_playwright is None:

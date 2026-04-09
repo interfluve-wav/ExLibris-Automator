@@ -188,7 +188,7 @@ def _minimal_parse_fallback(text: str) -> dict:
 def _try_parse_with_fallback(normalized_text: str, asset_type: str, parse_fn, pre_parsed: dict) -> dict:
     """
     Parse citation with fallback to manual parser if OpenAI fails.
-    
+
     Returns:
         Parsed data dict, or dict with 'error' key if all parsers fail
     """
@@ -196,23 +196,23 @@ def _try_parse_with_fallback(normalized_text: str, asset_type: str, parse_fn, pr
     if isinstance(pre_parsed, dict) and pre_parsed and pre_parsed.get('proceedings_title'):
         LOG.info("Parser path: pre-parsed")
         return pre_parsed
-    
+
     # Try primary parser (usually OpenAI)
     parsed_data = parse_fn(normalized_text) or {}
-    
+
     # Check if parser succeeded
     if not ("error" in parsed_data or not parsed_data or not parsed_data.get('proceedings_title')):
         LOG.info("Parser path: primary")
         return parsed_data
-    
+
     # Log failure and try manual fallback
     if "error" in parsed_data:
         LOG.warn(f"Parse error: {parsed_data.get('error', 'Unknown error')}")
     else:
         LOG.warn(f"Parser returned empty/invalid result")
-    
+
     LOG.info(f"Attempting manual parser fallback...")
-    
+
     try:
         # Import the appropriate manual parser
         manual_parse_modules = {
@@ -224,13 +224,13 @@ def _try_parse_with_fallback(normalized_text: str, asset_type: str, parse_fn, pr
             'technical_documentation': 'automation.technical_documentation_impl',
             'presentation': 'automation.presentations_impl'
         }
-        
+
         module_name = manual_parse_modules.get(asset_type, 'automation.presentations_impl')
         manual_parse_module = __import__(module_name, fromlist=['parse_citation'])
         manual_parse = getattr(manual_parse_module, 'parse_citation')
-        
+
         parsed_data = manual_parse(normalized_text) or {}
-        
+
         if "error" not in parsed_data and parsed_data.get('proceedings_title'):
             LOG.info(f"✓ Manual parser succeeded")
             LOG.info("Parser path: manual")
@@ -244,7 +244,7 @@ def _try_parse_with_fallback(normalized_text: str, asset_type: str, parse_fn, pr
                 LOG.info("Parser path: minimal")
                 return minimal
             return {"error": "OpenAI, manual, and minimal fallback parsers all failed"}
-    
+
     except Exception as e:
         LOG.error(f"Manual parser fallback error: {e}")
         return {"error": f"Parser fallback failed: {str(e)}"}
@@ -253,7 +253,7 @@ def _try_parse_with_fallback(normalized_text: str, asset_type: str, parse_fn, pr
 def _write_status_file(status_file: str, citation_id: str, state: str, error: str = None):
     """
     Write status file with standardized format.
-    
+
     Args:
         status_file: Path to status file
         citation_id: Citation ID being processed
@@ -270,7 +270,7 @@ def _write_status_file(status_file: str, citation_id: str, state: str, error: st
         }
         if error:
             payload["error"] = error
-        
+
         with open(status_file, "w", encoding="utf-8") as sf:
             json.dump(payload, sf)
     except Exception as e:
@@ -354,7 +354,7 @@ def main(channel_id):
                     # Parse citation with automatic fallback
                     normalized_text = re.sub(r"\(\s*pos\s*\)|--pos\b", "", citation_text, flags=re.I).strip()
                     parsed_data = _try_parse_with_fallback(normalized_text, asset_type, parse_fn, pre_parsed)
-                    
+
                     # Check if parsing failed completely
                     if "error" in parsed_data:
                         LOG.error(f"Parsing failed: {parsed_data.get('error')}")
@@ -432,5 +432,3 @@ if __name__ == "__main__":
         print("Usage: python3 automation/worker.py <channel_id>")
         sys.exit(1)
     main(sys.argv[1])
-
-

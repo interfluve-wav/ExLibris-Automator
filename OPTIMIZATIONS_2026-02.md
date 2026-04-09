@@ -12,10 +12,10 @@ Comprehensive performance optimization of the Esploro Citation Automation system
 
 **Problem**: 220-line monolithic title correction function was complex and hard to maintain.
 
-**Solution**: 
+**Solution**:
 - Extracted into 3 focused helper functions
 - `_correct_title_if_needed()` - Main coordinator
-- `_title_looks_like_authors()` - Detection logic  
+- `_title_looks_like_authors()` - Detection logic
 - `_extract_title_heuristically()` - Title extraction
 - Leverages `utils/citation_parser_utils.py` utilities
 
@@ -79,7 +79,7 @@ Comprehensive performance optimization of the Esploro Citation Automation system
 - 90% reduction in disk writes
 - Prevents file corruption with atomic writes
 
-**Files Changed**: 
+**Files Changed**:
 - `utils/config_manager.py` (223 lines, already existed)
 - `discord_bot_batch_smart.py` (lines 54-74, integration)
 
@@ -178,7 +178,7 @@ python3 tests/performance_tests.py
 
 ```bash
 e12c2dd - docs: comprehensive optimization documentation and type hints
-9dcca4b - test: add comprehensive performance benchmarks  
+9dcca4b - test: add comprehensive performance benchmarks
 ecacc0e - perf: integrate ConfigManager for optimized config I/O
 90477c0 - refactor: consolidate Discord bot command handlers
 1abb66a - feat: major codebase optimizations - refactor OpenAI parser
@@ -235,7 +235,7 @@ python3 test_citations.py
 ## Key Takeaways
 
 1. **Speed**: Citations now process 30-50% faster
-2. **Efficiency**: Dramatically reduced file I/O and API calls  
+2. **Efficiency**: Dramatically reduced file I/O and API calls
 3. **Maintainability**: 60% less code duplication, cleaner structure
 4. **Testability**: Comprehensive benchmark suite validates improvements
 5. **Documentation**: Full optimization guide in AGENTS.md

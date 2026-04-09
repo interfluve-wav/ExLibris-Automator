@@ -61,4 +61,3 @@ Comprehensive reference for every feature the system provides across Discord bot
 - `python3 test_citations.py` validates parser accuracy across curated citation samples.
 - `tests/performance_tests.py` measures parser latency, cache effectiveness, and config I/O improvements.
 - Asset-specific tests (e.g., `test_proceedings.py`, `test_book_chapter.py`) ensure Playwright logic and parser heuristics stay reliable.
-

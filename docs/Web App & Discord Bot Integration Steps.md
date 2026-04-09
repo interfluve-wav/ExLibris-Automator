@@ -56,8 +56,8 @@ def parse_any_citation(citation_text: str) -> Dict[str, str]:
     """Parse citation text and return structured data"""
     pass
 
-def process_citation(page, citation_data: Dict[str, str], 
-                    pause_after: bool = True, 
+def process_citation(page, citation_data: Dict[str, str],
+                    pause_after: bool = True,
                     start_from_home: bool = True):
     """Fill Esploro form using Playwright"""
     pass
@@ -66,7 +66,7 @@ def save_citation_to_csv(citation_data: Dict[str, str], output_file: str):
     """Save citation to CSV file"""
     pass
 
-def goto_with_retries(page, url: str, attempts: int = 3, 
+def goto_with_retries(page, url: str, attempts: int = 3,
                      wait_until: str = 'load') -> bool:
     """Navigate with retries"""
     pass
@@ -132,8 +132,8 @@ print(f'  /add_your_asset_type - Add your asset type citation')
 
 4. **Add to valid asset types list** (search for asset type validation):
 ```python
-VALID_ASSET_TYPES = ['presentation', 'poster', 'book_chapter', 
-                     'journal_article', 'proceedings', 'abstract', 
+VALID_ASSET_TYPES = ['presentation', 'poster', 'book_chapter',
+                     'journal_article', 'proceedings', 'abstract',
                      'your_asset_type']
 ```
 
@@ -162,8 +162,8 @@ if (assetType === 'your_asset_type') displayName = 'Your Asset Type';
 
 3. **Add validation** (around line 1211-1216 in set_asset_type method):
 ```python
-if asset_type not in ('auto', 'presentation', 'poster', 'book_chapter', 
-                      'journal_article', 'proceedings', 'abstract', 
+if asset_type not in ('auto', 'presentation', 'poster', 'book_chapter',
+                      'journal_article', 'proceedings', 'abstract',
                       'your_asset_type'):
     return {'success': False, 'error': f'Invalid asset type: {asset_type}'}
 ```
@@ -321,4 +321,3 @@ If you encounter issues:
 3. Test parser independently with `python3 automation/your_asset_type_impl.py`
 4. Check Esploro form field names haven't changed
 5. Ensure browser automation selectors are up to date
-

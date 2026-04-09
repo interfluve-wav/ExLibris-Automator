@@ -23,4 +23,3 @@ Start here to explore all project docs.
 - SMART_BATCH_GUIDE.md — Practical usage guide for the smart batch Discord flow.
 - tests/performance_tests.py — Run performance benchmarks.
 - test_citations.py — Validate citation parsing accuracy.
-

@@ -38,20 +38,20 @@ pkill -f "automation.worker" 2>/dev/null || true
 cleanup() {
     echo ""
     echo -e "${YELLOW}🛑 Shutting down all services...${NC}"
-    
+
     if [ ! -z "$DISCORD_PID" ]; then
         kill $DISCORD_PID 2>/dev/null
         echo -e "${GREEN}✓ Discord bot stopped${NC}"
     fi
-    
+
     if [ ! -z "$FLASK_PID" ]; then
         kill $FLASK_PID 2>/dev/null
         echo -e "${GREEN}✓ Flask web GUI stopped${NC}"
     fi
-    
+
     # Kill any remaining worker processes
     pkill -f "automation.worker" 2>/dev/null
-    
+
     echo -e "${GREEN}✓ All services stopped${NC}"
     exit 0
 }
@@ -131,12 +131,12 @@ while true; do
         echo -e "${RED}❌ Discord bot crashed! Check logs/discord_bot.log${NC}"
         cleanup
     fi
-    
+
     # Check if Flask is still running
     if ! ps -p $FLASK_PID > /dev/null; then
         echo -e "${RED}❌ Flask web GUI crashed! Check logs/flask_gui.log${NC}"
         cleanup
     fi
-    
+
     sleep 5
 done

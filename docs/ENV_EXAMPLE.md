@@ -21,4 +21,3 @@ DEFAULT_RESEARCHER=Scarano, Frank J
 #   To get this ID: Right-click the server icon → Copy Server ID (Developer Mode on)
 DISCORD_WEBHOOK_URL=
 NOTIFICATION_EMAIL=
-

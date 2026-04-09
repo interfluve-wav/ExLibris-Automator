@@ -9,5 +9,3 @@ from .abstract_impl import (
     save_citation_to_csv,
     process_citation,
 )
-
-

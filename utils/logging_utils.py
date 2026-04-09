@@ -42,5 +42,3 @@ class _Logger:
 
 def make_logger(section: str) -> _Logger:
     return _Logger(section)
-
-

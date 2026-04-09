@@ -266,7 +266,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
     print(f"✓ Form filled for: {citation_data.get('proceedings_title', '')}")
     # Fill authors/creators (if enabled)
     fill_authors_if_enabled(page, citation_data)
-    
+
     print("Add creators manually, then submit when ready.")
     if pause_after:
         input("Press Enter to continue...")

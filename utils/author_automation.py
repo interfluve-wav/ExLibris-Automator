@@ -75,7 +75,7 @@ def _option_match_score(target: Dict[str, str], option_label: str) -> int:
 def parse_authors_list(authors_string: str) -> List[Dict[str, str]]:
     """
     Parse authors into selection targets with last_name + first_initial.
-    
+
     Examples:
     - "H.W. Wallace" -> "Wallace"
     - "Y.J. Leong" -> "Leong"
@@ -83,18 +83,18 @@ def parse_authors_list(authors_string: str) -> List[Dict[str, str]]:
     """
     if not authors_string:
         return []
-    
+
     print(f"[DEBUG] Raw authors: '{authors_string}'")
-    
+
     # Remove "et al.", "and"
     authors_string = re.sub(r'\s*et\s+al\.?\s*$', '', authors_string, flags=re.I)
     authors_string = re.sub(r'\s+&\s+', ', ', authors_string)
     authors_string = re.sub(r'\s+and\s+', ', ', authors_string, flags=re.I)
     authors_string = authors_string.strip(' .,')
-    
+
     # Split by comma
     parts = [p.strip() for p in authors_string.split(',') if p.strip()]
-    
+
     targets: List[Dict[str, str]] = []
     # Preferred pattern: "Last, F." (or "Last, F. M.")
     pairs = re.findall(r"([A-Za-z][A-Za-z' -]+),\s*([A-Z])(?:\s*\.|$)", authors_string)
@@ -114,7 +114,7 @@ def parse_authors_list(authors_string: str) -> List[Dict[str, str]]:
                 if last_name and re.match(r'^[A-Z][a-z]', last_name):
                     targets.append({"last_name": last_name, "first_initial": ""})
                     print(f"[DEBUG] '{part}' -> '{last_name}'")
-    
+
     print(f"[DEBUG] Found {len(targets)} names: {[t['last_name'] for t in targets]}")
     return targets
 
@@ -123,25 +123,25 @@ def fill_authors(page, authors_string: str) -> bool:
     """
     Fill the creators/authors field with parsed author last names.
     Returns True if successful, False otherwise.
-    
+
     Args:
         page: Playwright page object
         authors_string: String containing author names (e.g., "Smith, J., & Doe, A.")
-    
+
     Returns:
         True if at least one author was added successfully, False otherwise
     """
     if not authors_string or not authors_string.strip():
         print("… No authors to fill")
         return False
-    
+
     author_targets = parse_authors_list(authors_string)
     if not author_targets:
         print("✗ Could not parse author names")
         return False
-    
+
     print(f"Filling {len(author_targets)} author(s): {', '.join(t['last_name'] for t in author_targets)}")
-    
+
     # Load delay between authors (helps when site lags)
     author_delay_ms = 1000
     try:
@@ -153,12 +153,12 @@ def fill_authors(page, authors_string: str) -> bool:
                 author_delay_ms = int(bot_config.get('author_add_delay_ms', 1000))
     except Exception:
         pass
-    
+
     try:
         # Click "Add creator" button
         page.get_by_role('button', name=' Add creator').click()
         page.wait_for_timeout(500)
-        
+
         added_count = 0
         for idx, target in enumerate(author_targets):
             last_name = target.get("last_name", "").strip()
@@ -167,12 +167,12 @@ def fill_authors(page, authors_string: str) -> bool:
                 # Click the textbox
                 page.get_by_role('textbox', name='Choose researcher *').click(timeout=3000)
                 page.wait_for_timeout(150)
-                
+
                 # Clear and fill with last name
                 page.get_by_role('textbox', name='Choose researcher *').fill('')
                 page.get_by_role('textbox', name='Choose researcher *').fill(last_name)
                 page.wait_for_timeout(800)  # Wait for dropdown
-                
+
                 # Score visible options to choose the best robust match.
                 try:
                     target = {"last_name": last_name, "first_initial": first_initial}
@@ -231,16 +231,16 @@ def fill_authors(page, authors_string: str) -> bool:
                         continue
 
                     page.wait_for_timeout(150)
-                    
+
                     # Click "Add" button
                     page.get_by_role('button', name='Add', exact=True).click(timeout=2000)
                     # Delay between authors (configurable via author_add_delay_ms in bot_config.json)
                     page.wait_for_timeout(author_delay_ms)
-                    
+
                     added_count += 1
                     shown = f"{last_name}, {first_initial}" if first_initial else last_name
                     print(f"  ✓ {idx + 1}/{len(author_targets)}: {shown}")
-                    
+
                 except Exception:
                     shown = f"{last_name}, {first_initial}" if first_initial else last_name
                     print(f"  ✗ {idx + 1}/{len(author_targets)}: {shown} (not found)")
@@ -249,22 +249,22 @@ def fill_authors(page, authors_string: str) -> bool:
                         page.get_by_role('textbox', name='Choose researcher *').fill('')
                     except Exception:
                         pass
-                
+
             except Exception as e:
                 shown = f"{last_name}, {first_initial}" if first_initial else last_name
                 print(f"  ✗ Error with {shown}: {e}")
                 continue
-        
+
         # Click "Add and close"
         try:
             page.get_by_role('button', name='Add and close').click(timeout=3000)
             page.wait_for_timeout(300)
         except Exception as e:
             print(f"⚠️  Could not click 'Add and close': {e}")
-        
+
         print(f"✓ Added {added_count}/{len(author_targets)} author(s)")
         return added_count > 0
-        
+
     except Exception as e:
         print(f"✗ Error filling authors: {e}")
         return False
@@ -284,14 +284,14 @@ def should_fill_authors() -> bool:
                 return bot_config.get('auto_fill_authors', True)
     except Exception:
         pass  # If config can't be read, default to True
-    
+
     return True  # Default to True for backward compatibility
 
 
 def fill_authors_if_enabled(page, citation_data: dict) -> None:
     """
     Convenience function that checks config and fills authors if enabled.
-    
+
     Args:
         page: Playwright page object
         citation_data: Dictionary containing citation data with 'authors' field

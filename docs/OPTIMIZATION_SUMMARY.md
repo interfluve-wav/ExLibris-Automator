@@ -161,11 +161,11 @@ _openai_client_api_key: Optional[str] = None
 def _get_openai_client() -> Optional[OpenAI]:
     global _openai_client, _openai_client_api_key
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
-    
+
     if _openai_client is None or _openai_client_api_key != api_key:
         _openai_client = OpenAI(api_key=api_key)
         _openai_client_api_key = api_key
-    
+
     return _openai_client
 ```
 
@@ -256,7 +256,7 @@ def _get_openai_client() -> Optional[OpenAI]:
    - Added client caching
    - Integrated citation_parser_utils
    - Removed duplicate regex patterns
-   
+
 2. `automation/worker.py`
    - Module loading moved to module level
    - Dispatch table pattern

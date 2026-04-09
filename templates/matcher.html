@@ -203,7 +203,7 @@
                 <div class="section-title">1. Enter Search Text</div>
                 <textarea id="searchText" placeholder="Enter citation text to find matches for..."></textarea>
             </div>
-            
+
             <div class="section">
                 <div class="section-title">2. Upload Source File</div>
                 <div class="file-upload">
@@ -212,7 +212,7 @@
                 </div>
                 <button onclick="findMatches()">Find Matches</button>
             </div>
-            
+
             <div id="resultsArea" class="results-area">
                 <div class="section-title">Matches Found: <span id="matchCount">0</span></div>
                 <textarea id="matchesOutput" readonly style="min-height: 300px; background-color: white; color: #333; cursor: text;"></textarea>
@@ -303,7 +303,7 @@
         function findMatches() {
             const text = document.getElementById('searchText').value.trim();
             const fileInput = document.getElementById('sourceFile');
-            
+
             if (!text) {
                 alert('Please enter search text');
                 return;
@@ -330,7 +330,7 @@
             .then(data => {
                 btn.textContent = originalText;
                 btn.disabled = false;
-                
+
                 if (data.success) {
                     displayMatches(data.matches);
                 } else {
@@ -350,10 +350,10 @@
             const matchesOutput = document.getElementById('matchesOutput');
             const countSpan = document.getElementById('matchCount');
             const downloadBtn = document.getElementById('downloadBtn');
-            
+
             resultsArea.style.display = 'block';
             countSpan.textContent = matches.length;
-            
+
             if (matches.length === 0) {
                 matchesOutput.value = "No matches found.";
                 downloadBtn.style.display = 'none';
@@ -367,12 +367,12 @@
         function addToControlPanel() {
             const matchesOutput = document.getElementById('matchesOutput');
             const text = matchesOutput.value;
-            
+
             if (!text || text === "No matches found.") {
                 alert("No matches to add.");
                 return;
             }
-            
+
             localStorage.setItem('pendingCitations', text);
             window.location.href = "/";
         }
@@ -381,14 +381,14 @@
             const matchesOutput = document.getElementById('matchesOutput');
             matchesOutput.select();
             document.execCommand('copy');
-            
+
             // Visual feedback
             const originalText = matchesOutput.value;
             // matchesOutput.value = "Copied!";
             // setTimeout(() => {
             //     matchesOutput.value = originalText;
             // }, 1000);
-            
+
             // Better feedback via button
             const btn = document.querySelector('button[onclick="copyToClipboard()"]');
             const originalLabel = btn.textContent;
@@ -400,11 +400,11 @@
 
         function downloadMatches() {
             if (currentMatches.length === 0) return;
-            
+
             const content = currentMatches.join('\n\n');
             const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
-            
+
             const a = document.createElement('a');
             a.href = url;
             a.download = 'matches.txt';

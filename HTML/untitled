@@ -4,21 +4,21 @@
 
     <!-- TODO: BN ? -->
 
-    
+
 
     <!--Needed for page generator refreshes - TEMP @TODO -->
     <input type="hidden" id="use_inner_ajax_refresh" value="true">
     <input type="hidden" id="ot-sdk-btn" class="ot-sdk-show-settings">
     <div style="display: none"><a id="relocateLink" href="/ng" class="jsRefreshBrowser"></a></div>
 
-    
+
     <script>
             document.getElementById("__loading__img").src = "/ng/assets/loader/logo-esploro.gif";
-        </script>    
+        </script>
     <script>System.import('@exl-ng/root-config');</script>
    <import-map-overrides-full show-when-local-storage="devtools" dev-libs=""></import-map-overrides-full>
 
-    
+
 
     <div class="selection_bubble visibility-hidden"></div>
 
@@ -76,12 +76,12 @@
             <div class=" searchInnerContent marSidesAuto  relativePos clearfix">
                   <!--Hidden row will be used for adding a new row. TODO use tag -->
                         <div class="advSearchRow hiddenRow oneLineSearch row marBottom15 padding5 padRight15">
-                             
+
 							<div class="col-xs-1 col-1 padRight0 advAndOrWrapper">
 								<fieldset>
                              		<legend class="hidden-legend">Logic operators</legend>
 									<div class="switch-toggle well form-control">
-										<!-- TODO use code table for operators  -->		
+										<!-- TODO use code table for operators  -->
 										<input value="AND" class="advAndOr operators" id="and--rowIndex--" name="strLogicalOperator--rowIndex--" type="radio" checked="checked">
 										<label for="and--rowIndex--" class="lineHeight34 operatorLabel">AND</label>
 										<input value="OR" class="advAndOr operators" name="strLogicalOperator--rowIndex--" id="or--rowIndex--" type="radio">
@@ -89,14 +89,14 @@
 										<a class="operatorLabel btn btn-primary"></a>
 									</div>
 								</fieldset>
-								
+
 								<span class="noOperators form-control">
 									<input value="AND" class="advAndOr  noOperator" name="strLogicalOperator--rowIndex--" id="operator--rowIndex--" type="hidden">
 									<span>AND</span>
 								</span>
 							</div>
-                                     
-                                     
+
+
                                      <div class="col-xs-3 col-3 padRight5 padLeft10 advSearchFieldsWrapper">
                                         <div class="input-group  ui-combobox shadow0 ">
                                           <!-- name="pageBean.advancedSearchWhereClause[{whereClauseIndex}].fieldName" -->
@@ -143,7 +143,7 @@
             <input type="hidden" name="almaConfiguration" value="">
             <input type="hidden" name="pageBean.pageSearchObjectType" value="">
           	<input type="hidden" name="pageBean.searchString" class="searchString" value=""><div style="width:87%" class="input-group  pull-left  relativePos">
-                          								
+
                 <div class="input-group-btn withoutOpacity">
               <button onclick="return false" aria-label="Advanced" id="advancedLink" role="button" class=" advancedSearchBtn lineHeight35 visibility-hidden jsToolTip jsNewAdvancedLink" data-placement="bottom" title="" aria-expanded="false" data-original-title="Advanced search">
               <div class="openAdvanceSearch"></div>              </button></div>
@@ -248,9 +248,9 @@
                       </span>
 
                 </div>
-				
+
 				<button onclick="return false" style="display:none" aria-label="Advanced" id="advancedLinkOld" role="button" class=" advancedSearchBtn lineHeight35 jsOldAdvancedLink hide">Advanced<i aria-hidden="true" class="uxf-icon uxf-down-caret hide"></i></button>
-               
+
                 </form>
         <div class="cleared"></div>
                 <form method="post" enctype="application/x-www-form-urlencoded" class="clearfix" action="/infra/action/pageAction.do?xmlFileName=search.search_router.xml&amp;pageBean.searchMode=ADVANCED&amp;RenewBean=true&amp;pageBean.securityHashToken=4426742852687471104&amp;" id="advSearchForm">
@@ -309,8 +309,8 @@
 <option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select><label class="hide" for="advSearchDummyDate--rowIndex--year">YYYY</label><select id="advSearchDummyDate--rowIndex--year" name="advSearchDummyDate--rowIndex--.yearUI" title="" tabindex="-1" class="jsHiddenYear">
 <option value="0" selected="selected">YYYY</option>
 <option value="1900">1900</option><option value="1901">1901</option><option value="1902">1902</option><option value="1903">1903</option><option value="1904">1904</option><option value="1905">1905</option><option value="1906">1906</option><option value="1907">1907</option><option value="1908">1908</option><option value="1909">1909</option><option value="1910">1910</option><option value="1911">1911</option><option value="1912">1912</option><option value="1913">1913</option><option value="1914">1914</option><option value="1915">1915</option><option value="1916">1916</option><option value="1917">1917</option><option value="1918">1918</option><option value="1919">1919</option><option value="1920">1920</option><option value="1921">1921</option><option value="1922">1922</option><option value="1923">1923</option><option value="1924">1924</option><option value="1925">1925</option><option value="1926">1926</option><option value="1927">1927</option><option value="1928">1928</option><option value="1929">1929</option><option value="1930">1930</option><option value="1931">1931</option><option value="1932">1932</option><option value="1933">1933</option><option value="1934">1934</option><option value="1935">1935</option><option value="1936">1936</option><option value="1937">1937</option><option value="1938">1938</option><option value="1939">1939</option><option value="1940">1940</option><option value="1941">1941</option><option value="1942">1942</option><option value="1943">1943</option><option value="1944">1944</option><option value="1945">1945</option><option value="1946">1946</option><option value="1947">1947</option><option value="1948">1948</option><option value="1949">1949</option><option value="1950">1950</option><option value="1951">1951</option><option value="1952">1952</option><option value="1953">1953</option><option value="1954">1954</option><option value="1955">1955</option><option value="1956">1956</option><option value="1957">1957</option><option value="1958">1958</option><option value="1959">1959</option><option value="1960">1960</option><option value="1961">1961</option><option value="1962">1962</option><option value="1963">1963</option><option value="1964">1964</option><option value="1965">1965</option><option value="1966">1966</option><option value="1967">1967</option><option value="1968">1968</option><option value="1969">1969</option><option value="1970">1970</option><option value="1971">1971</option><option value="1972">1972</option><option value="1973">1973</option><option value="1974">1974</option><option value="1975">1975</option><option value="1976">1976</option><option value="1977">1977</option><option value="1978">1978</option><option value="1979">1979</option><option value="1980">1980</option><option value="1981">1981</option><option value="1982">1982</option><option value="1983">1983</option><option value="1984">1984</option><option value="1985">1985</option><option value="1986">1986</option><option value="1987">1987</option><option value="1988">1988</option><option value="1989">1989</option><option value="1990">1990</option><option value="1991">1991</option><option value="1992">1992</option><option value="1993">1993</option><option value="1994">1994</option><option value="1995">1995</option><option value="1996">1996</option><option value="1997">1997</option><option value="1998">1998</option><option value="1999">1999</option><option value="2000">2000</option><option value="2001">2001</option><option value="2002">2002</option><option value="2003">2003</option><option value="2004">2004</option><option value="2005">2005</option><option value="2006">2006</option><option value="2007">2007</option><option value="2008">2008</option><option value="2009">2009</option><option value="2010">2010</option><option value="2011">2011</option><option value="2012">2012</option><option value="2013">2013</option><option value="2014">2014</option><option value="2015">2015</option><option value="2016">2016</option><option value="2017">2017</option><option value="2018">2018</option><option value="2019">2019</option><option value="2020">2020</option><option value="2021">2021</option><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option><option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option><option value="2035">2035</option><option value="2036">2036</option><option value="2037">2037</option><option value="2038">2038</option><option value="2039">2039</option><option value="2040">2040</option><option value="2041">2041</option><option value="2042">2042</option><option value="2043">2043</option><option value="2044">2044</option><option value="2045">2045</option><option value="2046">2046</option><option value="2047">2047</option><option value="2048">2048</option><option value="2049">2049</option><option value="2050">2050</option><option value="2051">2051</option><option value="2052">2052</option><option value="2053">2053</option><option value="2054">2054</option><option value="2055">2055</option><option value="2056">2056</option><option value="2057">2057</option><option value="2058">2058</option><option value="2059">2059</option><option value="2060">2060</option><option value="2061">2061</option><option value="2062">2062</option><option value="2063">2063</option><option value="2064">2064</option><option value="2065">2065</option><option value="2066">2066</option><option value="2067">2067</option><option value="2068">2068</option><option value="2069">2069</option><option value="2070">2070</option><option value="2071">2071</option><option value="2072">2072</option><option value="2073">2073</option><option value="2074">2074</option><option value="2075">2075</option><option value="2076">2076</option><option value="2077">2077</option><option value="2078">2078</option><option value="2079">2079</option><option value="2080">2080</option><option value="2081">2081</option><option value="2082">2082</option><option value="2083">2083</option><option value="2084">2084</option><option value="2085">2085</option><option value="2086">2086</option><option value="2087">2087</option><option value="2088">2088</option><option value="2089">2089</option><option value="2090">2090</option><option value="2091">2091</option><option value="2092">2092</option><option value="2093">2093</option><option value="2094">2094</option><option value="2095">2095</option><option value="2096">2096</option><option value="2097">2097</option><option value="2098">2098</option><option value="2099">2099</option></select></span><span><span class="input-group date"><input id="advSearchDummyDate--rowIndex--" type="text" autocomplete="off" class="jsCalendarSingle  form-control jsLazyInit" data-type="all" data-relativedate="false" title="MM/dd/yyyy" value=""><button type="button" role="button" tabindex="0" id="advSearchDummyDate--rowIndex--_reset" onclick="resetDatePicker($('#advSearchDummyDate--rowIndex--'))" class="btn btn-link datePickerReset height34  hide " aria-label="Clear date field"><span class="uxf-icon uxf-close"></span></button><span tabindex="0" aria-expanded="false" role="button" onclick="dateRangePickerBtnClicked(this, $('#advSearchDummyDate--rowIndex--'))" onkeypress="if(event.which == 13){dateRangePickerBtnClicked(this, $('#advSearchDummyDate--rowIndex--'))}" class="input-group-addon input-group-text input-group-append" aria-label=" - Open calendar. Press Esc for close" cursor-pointer="" "=""><span class="uxf-icon uxf-cal"></span></span></span><span class="hidden dateError jsDateErroradvSearchDummyDate--rowIndex--" id="PastErrorForadvSearchDummyDate--rowIndex--">Past date only</span><span class="hidden dateError jsDateErroradvSearchDummyDate--rowIndex--" id="FutureErrorForadvSearchDummyDate--rowIndex--">Future date only</span><span class="hidden dateError jsDateErroradvSearchDummyDate--rowIndex--" id="errorForadvSearchDummyDate--rowIndex--">Invalid date</span></span><input type="hidden" id="jsEventsHiddenadvSearchDummyDate--rowIndex--" value=""></div>
-                                     <div class="dummyField_pickup"><div class="input-group pickupControls width100P"><input class="form-control  fieldWithIcon  readOnlyPickup " type="text" readonly="readonly" name="advSearchDummyPickup--rowIndex--" id="advSearchDummyPickup--rowIndex--" disabled="disabled" title="" value=""> 
-<span class="input-group-btn pickupControls input-group-append "><button aria-label="Choose from a list" id="PICKUP_ID_advSearchDummyPickup--rowIndex--" type="submit" class="jsToolTip btn btn-secondary pickup pickupControls improvedPickup jsInitialized" name="operation" data-container="body" value="pickupRedirectUrl:&amp;amp;RenewBean=true&amp;amp;pageBean.pickupInfo.pickupFieldName=pageBean.advSearchDummyPickup--rowIndex--&amp;amp;pageBean.pickupInfo.pickupMode=Single&amp;amp;pageBean.pickupInfo.pickupFieldCode=null&amp;amp;pageViewMode=Pickup&amp;amp;pageBean.pickupInfo.shOnSession=false" disabled="disabled" title="" onclick="return loadPageInIframePopup(this);" data-original-title="Select from a list">  
+                                     <div class="dummyField_pickup"><div class="input-group pickupControls width100P"><input class="form-control  fieldWithIcon  readOnlyPickup " type="text" readonly="readonly" name="advSearchDummyPickup--rowIndex--" id="advSearchDummyPickup--rowIndex--" disabled="disabled" title="" value="">
+<span class="input-group-btn pickupControls input-group-append "><button aria-label="Choose from a list" id="PICKUP_ID_advSearchDummyPickup--rowIndex--" type="submit" class="jsToolTip btn btn-secondary pickup pickupControls improvedPickup jsInitialized" name="operation" data-container="body" value="pickupRedirectUrl:&amp;amp;RenewBean=true&amp;amp;pageBean.pickupInfo.pickupFieldName=pageBean.advSearchDummyPickup--rowIndex--&amp;amp;pageBean.pickupInfo.pickupMode=Single&amp;amp;pageBean.pickupInfo.pickupFieldCode=null&amp;amp;pageViewMode=Pickup&amp;amp;pageBean.pickupInfo.shOnSession=false" disabled="disabled" title="" onclick="return loadPageInIframePopup(this);" data-original-title="Select from a list">
 <span class="uxf-icon uxf-list"></span>&nbsp;</button></span></div></div>
                                      <div class="dummyField_combo"><div class="input-group ui-combobox"><input role="combobox" aria-label="Select an item from the list. Use autocomplete to view fewer options. Press ESC to reset." aria-expanded="false" id="advSearchDummyCombo--rowIndex--" style="color: #555;" class="form-control ui-combobox-input ui-autocomplete-input ui-widget ui-widget-content jsComboPlaceholder defaultPlaceholderDiv jsRemoveOnInit jsLazyInit" value="-"><span class="input-group-btn jsRemoveOnInit "><button aria-label="Option list toggle" type="button" class="jsLazyInit btn btn-secondary dropdown-toggle height34 jsComboPlaceholder defaultPlaceholderButton"><span class="caret hide"></span></button></span><select name="advSearchDummyCombo--rowIndex--" id="advSearchDummyCombo--rowIndex--_hiddenSelect" class="jsDummy jsAddHideClass hide" title="Select an item from the list. Use autocomplete to view fewer options. Press ESC to reset.">
 </select>
@@ -540,7 +540,7 @@ Production </p><!----></div><div _ngcontent-ng-c1815791232="" class="hintHotKeyT
 <div id="pageContent" class="">
 
 <div class="cleared"></div>
-	
+
 <input type="hidden" id="dynamic_title" value="Deposit Research Asset">
 <input type="hidden" id="dynamic_body_id" value="body_id_xml_file_esploro.deposit.forms.deposit_form_step1.xml">
 <a id="dynamic_help_for_page" onclick="javascript:winPop(this,'/infra/action/helpHandler.do?helpId=com.exlibris.dps.wrk.general.menu.EsploroMng.research.Deposit.title.first.step\x26amp;\x26amp;pageViewMode=New\x26xmlFileName=esploro.deposit.forms.deposit_form_step1.xml\x26__rid=1BH8J9e1EB','n',750,500);return false" class="jsPopupHasNav hide" data-help-id="com.exlibris.dps.wrk.general.menu.EsploroMng.research.Deposit.title.first.step"></a>
@@ -622,8 +622,8 @@ Production </p><!----></div><div _ngcontent-ng-c1815791232="" class="hintHotKeyT
 <div class="row ">
 <label class="col col-md-3 col-xs-2 col-2 control-label height34 displayTable lineHeight35 padSides5 fontReg textRight" for="pageBeanresearcherUserName"><span class="displayTableCell verticalMiddle lineHeight16 ">Researcher</span><span class="dummySpace">&nbsp;</span></label>
 <div class="col col-md-8 col-xs-10 col-10 form-field jsPreventSelectionHistoryRefresh">
-<div class="input-group pickupControls width100P"><input class="form-control fieldWithIcon jsAutoCompleteClass jsBarcodeScannerEnabledClass ui-autocomplete-input" type="text" name="pageBean.researcherUserName" id="pageBeanresearcherUserName" title="" value="" autocomplete="off"> 
-<span class="input-group-btn pickupControls input-group-append "><button aria-label="Choose from a list" id="PICKUP_ID_pageBeanresearcherUserName" type="submit" class="jsToolTip btn btn-secondary pickup pickupControls improvedPickup jsInitialized" name="operation" data-container="body" value="pickupRedirectUrl:/rep/action/pageAction.do?&amp;amp;xmlFileName=esploro.researcher.researcher_list_affiliated.xml&amp;amp;pageBean.notOverideBackUrl=false&amp;amp;pageBean.affiliatedOnly=true&amp;amp;pageBean.selectedTab=research.researcher.researcher_list.tab.affiliated&amp;amp;pageBean.researcherType=AFFILIATED&amp;amp;RenewBean=true&amp;amp;pageBean.pickupInfo.pickupFieldName=pageBean.researcherUserName&amp;amp;pageBean.pickupInfo.pickupMode=Single&amp;amp;pageBean.pickupInfo.pickupFieldCode=pageBean.researcherUserId&amp;amp;pageViewMode=Pickup&amp;amp;pageBean.pickupInfo.shOnSession=false" title="" onclick="return loadPageInIframePopup(this);" data-original-title="Select from a list">  
+<div class="input-group pickupControls width100P"><input class="form-control fieldWithIcon jsAutoCompleteClass jsBarcodeScannerEnabledClass ui-autocomplete-input" type="text" name="pageBean.researcherUserName" id="pageBeanresearcherUserName" title="" value="" autocomplete="off">
+<span class="input-group-btn pickupControls input-group-append "><button aria-label="Choose from a list" id="PICKUP_ID_pageBeanresearcherUserName" type="submit" class="jsToolTip btn btn-secondary pickup pickupControls improvedPickup jsInitialized" name="operation" data-container="body" value="pickupRedirectUrl:/rep/action/pageAction.do?&amp;amp;xmlFileName=esploro.researcher.researcher_list_affiliated.xml&amp;amp;pageBean.notOverideBackUrl=false&amp;amp;pageBean.affiliatedOnly=true&amp;amp;pageBean.selectedTab=research.researcher.researcher_list.tab.affiliated&amp;amp;pageBean.researcherType=AFFILIATED&amp;amp;RenewBean=true&amp;amp;pageBean.pickupInfo.pickupFieldName=pageBean.researcherUserName&amp;amp;pageBean.pickupInfo.pickupMode=Single&amp;amp;pageBean.pickupInfo.pickupFieldCode=pageBean.researcherUserId&amp;amp;pageViewMode=Pickup&amp;amp;pageBean.pickupInfo.shOnSession=false" title="" onclick="return loadPageInIframePopup(this);" data-original-title="Select from a list">
 <span class="uxf-icon uxf-list"></span>&nbsp;</button><button type="button" id="PICKUP_SHOW_SH_pageBeanresearcherUserName" class="btn btn-secondary showSH jsToolTip padSides5" data-toggle="tooltip" data-container="body" aria-label="Recent Researcher" title="" onclick="$(this).siblings('ul').css('width', getTextWidth($(this).siblings('ul'), findLongestText($(this).siblings('ul')), 10));" "="" data-original-title="Recent"><span class="uxf-icon uxf-back-in-time"></span>&nbsp;</button></span></div><ul role="list" class="dropdown-menu hide jsItemsForAutocomplete maxWidth500"><li class="dropdown-header ui-autocomplete-category">Recent</li></ul><input class="" type="hidden" name="pageBean.researcherUserId" value="0" onchange=" return ajaxRefresh(this, 'assetOwnerForm,pageForm', 'assetOwnerSelected', '');"><script type="text/javascript">$(document).bind("dynamicPageReady", function() {registerAutocomplete("pageBeanresearcherUserName", "pageBean.researcherUserId", true, 3, 600, 10000);});</script></div>
 </div>
 </div>
@@ -641,7 +641,7 @@ Production </p><!----></div><div _ngcontent-ng-c1815791232="" class="hintHotKeyT
 <label class="col col-md-3 col-xs-2 col-2 control-label height34 displayTable lineHeight35 padSides5 fontReg textRight" for="pageBeanorganizationLevelName"><span class="displayTableCell verticalMiddle lineHeight16 ">Academic unit<span class="mandatoryIcon"> </span></span><span class="dummySpace">&nbsp;</span></label>
 <div class="col col-md-8 col-xs-10 col-10 form-field">
 <div class="input-group attached-fields">
-<input class="form-control fieldWithIcon jsAutoCompleteClass ui-autocomplete-input" type="text" name="pageBean.organizationLevelName" id="pageBeanorganizationLevelName" title="" value="" autocomplete="off" aria-required="true"> 
+<input class="form-control fieldWithIcon jsAutoCompleteClass ui-autocomplete-input" type="text" name="pageBean.organizationLevelName" id="pageBeanorganizationLevelName" title="" value="" autocomplete="off" aria-required="true">
 <span class="input-group-btn pickupControls input-group-append "></span><input class="" type="hidden" name="pageBean.organizationLevelCode" value="" onchange=" return ajaxRefresh(this, 'pageForm', 'populate_from_depositTo', '');"><script type="text/javascript">$(document).bind("dynamicPageReady", function() {registerAutocomplete("pageBeanorganizationLevelName", "pageBean.organizationLevelCode", false, 3, 600, 10000);});</script><span class="input-group-btn attached-field-btn "><label class="sr-only" for="pagebuttonsPointers6operation">openOrganizationalPopup</label><span class="input-group-btn  attached-field-btn  "><button type="submit" name="page.buttonsPointers[6].operation" id="openOrganizationalPopup" class="  btn btn-secondary single-button width110 uxf-icon uxf-list " value="openOrganizationalPopup" onclick="this.form.target='_self';return loadPage(this);" title=" "> </button></span></span></div>
 </div>
 </div>
@@ -850,7 +850,7 @@ Production </p><!----></div><div _ngcontent-ng-c1815791232="" class="hintHotKeyT
 </div> <img src="/infra/images/ajaxloader.gif?version=February2026" class="hide" alt="Hidden Image">
 <img src="/infra/images/ui-icons_222222_256x240.png?version=February2026" class="hide" alt="Hidden Image">
 <script type="text/javascript">
-    
+
 
     function prepareDatePickers() {
         calendarDateRangeRender('MM/DD/YYYY', 'kk:mm');
@@ -864,7 +864,7 @@ Production </p><!----></div><div _ngcontent-ng-c1815791232="" class="hintHotKeyT
     </script>
 
 <div id="apm-set">
-		<script type="text/javascript"> 
+		<script type="text/javascript">
 			(function() {if (window.AlmaPageMetadata && window.AlmaPageMetadata.set) {window.AlmaPageMetadata.swap(false);window.AlmaPageMetadata.set(JSON.parse('{\"entities\":[{\"type\":\"IER\",\"link\":\"/assets/null\"}]}')); }})();
 		</script>
 	</div>
@@ -876,13 +876,13 @@ Production </p><!----></div><div _ngcontent-ng-c1815791232="" class="hintHotKeyT
     	<span class="alma-footer-logo">
         	<img alt="Ex Libris logo" src="/infra/images/footer_proquest_logo_256.png?version=February 2026">
     	</span>
-        
+
         <span class="alma-footerCompany" dir="auto">
             © Ex Libris, Part of Clarivate
             &nbsp; 2026</span>
-        
+
         </div>
-    
+
     <div class="jsCollapsedFooter" style="display: none;" title="Terms of Use">
     	<img alt="Ex Libris logo" src="/infra/images/exlibris-logo-small.png?version=February 2026">
     </div>
@@ -900,7 +900,7 @@ Production </p><!----></div><div _ngcontent-ng-c1815791232="" class="hintHotKeyT
 					cookie: 'URM_RT'
 				}
 		});
-		
+
 		BOOMR.subscribe('before_beacon', function(o) {
 	        if(o.t_done) {
 	        	$('#boomerang_bandwidth').html("This page took " + o.t_done + "ms to load");

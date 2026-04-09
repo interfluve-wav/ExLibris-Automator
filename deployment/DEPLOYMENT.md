@@ -624,5 +624,5 @@ Before going to production:
 
 ---
 
-**Last Updated**: February 2026  
+**Last Updated**: February 2026
 **Version**: 1.1.0

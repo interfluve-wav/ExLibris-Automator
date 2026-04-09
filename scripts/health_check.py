@@ -52,14 +52,14 @@ def check_logs():
     if not log_dir.exists():
         print("⚠️  Logs directory does not exist (will be created)")
         return True
-    
+
     # Check for recent log files (within last 24 hours)
     recent_logs = []
     cutoff = datetime.now() - timedelta(days=1)
     for log_file in log_dir.glob('*.log'):
         if datetime.fromtimestamp(log_file.stat().st_mtime) > cutoff:
             recent_logs.append(log_file)
-    
+
     if recent_logs:
         print(f"✓ Logs OK: {len(recent_logs)} recent log files")
     else:
@@ -90,13 +90,13 @@ def check_bot_process():
                 cpu_percent = proc.cpu_percent(interval=0.1)
                 mem_mb = proc.memory_info().rss / (1024 ** 2)
                 print(f"✓ Bot process running (PID: {proc.pid}, CPU: {cpu_percent:.1f}%, MEM: {mem_mb:.1f} MB)")
-                
+
                 # Check resource usage
                 if cpu_percent > 80:
                     print(f"⚠️  High CPU usage: {cpu_percent:.1f}%")
                 if mem_mb > 1500:
                     print(f"⚠️  High memory usage: {mem_mb:.1f} MB")
-                
+
                 return True
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
@@ -108,16 +108,16 @@ def check_control_files():
     """Check control files for stuck states."""
     control_files = list(Path('.').glob('citation_control_*.json'))
     status_files = list(Path('.').glob('citation_status_*.json'))
-    
+
     if control_files or status_files:
         print(f"ℹ️  Active sessions: {len(control_files)} control, {len(status_files)} status files")
-        
+
         # Check for old control files (> 1 hour)
         cutoff = datetime.now() - timedelta(hours=1)
         for f in control_files:
             if datetime.fromtimestamp(f.stat().st_mtime) < cutoff:
                 print(f"⚠️  Stale control file: {f.name} (> 1 hour old)")
-    
+
     return True
 
 
@@ -125,7 +125,7 @@ def main():
     """Run all health checks."""
     print("🏥 Esploro Bot Health Check")
     print("=" * 50)
-    
+
     checks = [
         ("Config Files", check_config_files),
         ("Disk Space", check_disk_space),
@@ -134,7 +134,7 @@ def main():
         ("Worker Process", check_worker_process),
         ("Control Files", check_control_files),
     ]
-    
+
     results = {}
     for name, check_func in checks:
         try:
@@ -143,11 +143,11 @@ def main():
             print(f"❌ {name}: Error - {e}")
             results[name] = False
         print()
-    
+
     # Evaluate results
     critical_checks = ["Config Files", "Bot Process"]
     critical_failed = any(not results.get(check, True) for check in critical_checks)
-    
+
     if critical_failed:
         print("💀 CRITICAL: Bot is not healthy")
         return 2

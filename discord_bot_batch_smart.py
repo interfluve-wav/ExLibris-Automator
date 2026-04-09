@@ -168,40 +168,40 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
-    
+
     # Only process messages in the designated citation channel (if specified)
     if CITATION_CHANNEL_ID and str(message.channel.id) != CITATION_CHANNEL_ID:
         return
-    
+
     channel_id = message.channel.id
     content = message.content.strip()
-    
+
     # Handle commands
     if content.startswith('!'):
         await handle_command(message, content)
         return
-    
+
     # Skip empty messages
     if not content:
         return
-    
+
     LOG.debug(f"Message: {content[:80]}…")
-    
+
     # Smart citation detection - be VERY inclusive
     # Accept anything that looks like it could be academic/scholarly text
     import re
-    
+
     # Basic checks
     has_period = '.' in content
     has_comma = ',' in content
     has_year = bool(re.search(r'\\b(19|20)\\d{2}\\b', content))
     has_capital = bool(re.search(r'[A-Z]', content))
     is_long_enough = len(content.strip()) > 20
-    
+
     # Check for common citation patterns
     has_author_pattern = bool(re.search(r'\\b[A-Z][a-z]+,\\s*[A-Z]\\.?', content))  # Smith, J.
     has_parentheses = '(' in content and ')' in content
-    
+
     # Academic/scholarly keywords (very broad)
     academic_keywords = [
         'university', 'college', 'institute', 'academy', 'school',
@@ -216,10 +216,10 @@ async def on_message(message):
         'spring', 'summer', 'fall', 'winter', 'quarterly',
         'press', 'publisher', 'publication', 'edition'
     ]
-    
+
     content_lower = content.lower()
     has_academic_keyword = any(keyword in content_lower for keyword in academic_keywords)
-    
+
     # Be VERY liberal - accept if ANY of these conditions are met:
     is_citation = (
         # Has year + period + comma (most citations)
@@ -233,18 +233,18 @@ async def on_message(message):
         # Long text with capitals and punctuation (likely academic)
         (is_long_enough and has_capital and has_period and len(content) > 50)
     )
-    
+
     if not is_citation:
         print(f"⏭️  Message doesn't look like a citation")
         print(f"     Tip: Add it anyway with: !add {content[:30]}...")
         return
-    
+
     LOG.info("Citation detected")
-    
+
     # Check if message contains multiple citations (separated by blank lines or double newlines)
     # Split on double newlines or single newlines with enough spacing
     potential_citations = []
-    
+
     # Try splitting by double newlines first
     if '\\n\\n' in content:
         potential_citations = [c.strip() for c in content.split('\\n\\n') if c.strip()]
@@ -264,7 +264,7 @@ async def on_message(message):
         # Add last citation
         if current_citation:
             potential_citations.append(' '.join(current_citation))
-        
+
         # Only consider it multi-citation if we found more than 1
         if len(potential_citations) > 1:
             LOG.debug(f"Detected {len(potential_citations)} potential citations (newline)")
@@ -272,16 +272,16 @@ async def on_message(message):
             potential_citations = [content]  # Treat as single citation
     else:
         potential_citations = [content]  # Single citation
-    
+
     valid_citations = [c for c in potential_citations if len(c) > 30]
-    
+
     if len(valid_citations) == 0:
         valid_citations = [content]  # Fall back to original
-    
+
     # Add all citations to queue
     queue = get_queue(channel_id)
     added_count = 0
-    
+
     import time, re
     for citation_text in valid_citations:
         # Validate citation text before processing
@@ -289,10 +289,10 @@ async def on_message(message):
         if not is_valid:
             LOG.warn(f"[{channel_id}] Skipping invalid citation: {error_msg}")
             continue
-        
+
         # Sanitize the citation text
         citation_text = sanitize_text(citation_text, max_length=5000)
-        
+
         # Detect explicit tag override (--pos|--pres|--proc)
         citation_lower = citation_text.lower()
         m_tag = re.search(r"\s--(pos|pres|proc)\b", citation_lower)
@@ -375,10 +375,10 @@ async def on_message(message):
             asyncio.create_task(_do_preparse(citation_data, citation_text))
         except Exception:
             pass
-    
+
     # React to show it was added
     await message.add_reaction('📋')
-    
+
     # Send appropriate reply based on single vs multiple
     if added_count == 1:
         queue_position = len(queue)
@@ -397,7 +397,7 @@ async def on_message(message):
             f"📋 **Asset type:** {asset_type.title()}\\n\\n"
             f"Use `!f` to fill citations one at a time (browser stays open)."
         )
-    
+
     LOG.info(f"Queue size now {len(queue)}")
 
 
@@ -475,10 +475,10 @@ async def _cmd_set(message, content: str) -> None:
         if len(parts) < 3:
             await message.reply("❌ Usage: !set researcher \"Last, First\" | !set researcher reset | !set type presentation|poster|auto|reset")
             return
-        
+
         subcmd = parts[1].lower()
         arg = parts[2].strip().strip('"')
-        
+
         if subcmd == 'researcher':
             await _cmd_set_researcher(message, arg)
         elif subcmd == 'type':
@@ -501,17 +501,17 @@ async def _cmd_set_researcher(message, arg: str) -> None:
         if not arg:
             await message.reply("❌ Provide a researcher: !set researcher \"Last, First\"")
             return
-        
+
         # Validate researcher name
         is_valid, error_msg = validate_researcher_name(arg)
         if not is_valid:
             await message.reply(f"❌ Invalid researcher name: {error_msg}")
             LOG.warn(f"Rejected invalid researcher name: {arg} - {error_msg}")
             return
-        
+
         # Sanitize the name
         researcher_name = sanitize_text(arg, max_length=200)
-        
+
         config['default_researcher'] = researcher_name
         save_config(config)
         await message.reply(f"✅ Researcher set to: {researcher_name}")
@@ -533,11 +533,11 @@ async def _cmd_set_type(message, arg: str) -> None:
             normalized_arg = 'journal_article'
         if normalized_arg in ('proceeding', 'conference_proceeding', 'conference_proceedings'):
             normalized_arg = 'proceedings'
-        
+
         if normalized_arg not in ('auto', 'presentation', 'poster', 'book_chapter', 'journal_article', 'proceedings', 'abstract'):
             await message.reply("❌ Type must be one of: auto | presentation | poster | book_chapter | journal_article | proceedings | abstract | reset")
             return
-        
+
         config['asset_mode'] = normalized_arg
         save_config(config)
         config = load_config()  # Reload to ensure sync
@@ -583,17 +583,17 @@ async def _cmd_help(message) -> None:
 async def _cmd_queue(message, channel_id: int) -> None:
     """Handle !queue command."""
     queue = get_queue(channel_id)
-    
+
     if not queue:
         await message.reply("📭 **Queue is empty!** Send some citations to get started.")
         return
-    
+
     queue_msg = f"📋 **Citation Queue ({len(queue)} items)**\n\n"
     for i, citation in enumerate(queue, 1):
         citation_preview = citation['text'][:60] + ('...' if len(citation['text']) > 60 else '')
         queue_msg += f"**{i}.** {citation['asset_type'].title()}\n"
         queue_msg += f"   {citation_preview}\n\n"
-    
+
     queue_msg += f"Use `!f` to fill the next citation."
     await message.reply(queue_msg)
 
@@ -603,10 +603,10 @@ async def _cmd_clear(message, channel_id: int) -> None:
     queue = get_queue(channel_id)
     count = len(queue)
     queue.clear()
-    
+
     if channel_id in processing_citations:
         del processing_citations[channel_id]
-    
+
     await message.reply(f"🗑️ **Queue cleared!** Removed {count} citation(s).")
     LOG.info(f"Queue cleared for channel {channel_id}")
 
@@ -645,14 +645,14 @@ async def _cmd_close(message, channel_id: int) -> None:
 async def _cmd_add(message, content: str, channel_id: int) -> None:
     """Handle !add command - manually add a citation."""
     import re, time
-    
+
     citation_text = content[len('!add'):].strip()
     if not citation_text:
         await message.reply("❌ **Usage:** `!add <citation text>`\n\nExample: `!add Smith, J. (2024). My Paper. Conference.`")
         return
-    
+
     queue = get_queue(channel_id)
-    
+
     # Determine asset type with tag/override precedence
     citation_lower = citation_text.lower()
     m_tag = re.search(r"\s--(pos|pres|proc)\b", citation_lower)
@@ -662,11 +662,11 @@ async def _cmd_add(message, content: str, channel_id: int) -> None:
         if tag == 'pos': forced_type = 'poster'
         elif tag == 'pres': forced_type = 'presentation'
         elif tag == 'proc': forced_type = 'proceedings'
-    
+
     # Strip helper tags
     citation_text = re.sub(r"\s--(pos|pres|proc)\b", "", citation_text, flags=re.I)
     citation_text = re.sub(r"\(\s*pos\s*\)", "", citation_text, flags=re.I)
-    
+
     # Resolve type
     if forced_type in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation"):
         asset_type = forced_type
@@ -674,7 +674,7 @@ async def _cmd_add(message, content: str, channel_id: int) -> None:
         asset_type = config.get('asset_mode')
     else:
         asset_type = "poster" if ('poster presentation' in citation_lower or 'poster' in citation_lower or '(pos)' in citation_lower or '--pos' in citation_lower) else "presentation"
-    
+
     citation_id = f"{message.id}_{int(time.time() * 1000)}_manual"
     citation_data = {
         'text': citation_text,
@@ -684,14 +684,14 @@ async def _cmd_add(message, content: str, channel_id: int) -> None:
         'author': str(message.author),
         'researcher': config.get('default_researcher')
     }
-    
+
     queue.append(citation_data)
     try:
         config['stats']['enqueued'] += 1
         save_config(config)
     except Exception:
         pass
-    
+
     await message.add_reaction('📋')
     queue_position = len(queue)
     await message.reply(
@@ -712,7 +712,7 @@ async def handle_command(message, content):
     global config
     channel_id = message.channel.id
     command = content.lower().split()[0]
-    
+
     # Command dispatch table
     command_handlers = {
         '!resync': lambda: _cmd_resync(message),
@@ -727,35 +727,35 @@ async def handle_command(message, content):
         '!close': lambda: _cmd_close(message, channel_id),
         '!add': lambda: _cmd_add(message, content, channel_id),
     }
-    
+
     handler = command_handlers.get(command)
     if handler:
         await handler()
         return
-    
+
     # Handle !f and !fill commands (they have more complex logic)
     if command in ['!f', '!fill']:
         if config.get('paused'):
             await message.reply("⏸️ Bot is paused. Use !resume to continue.")
             return
         queue = get_queue(channel_id)
-        
+
         if not queue:
             await message.reply(
                 "📭 **Queue is empty!**\n\n"
                 "Send some citations to get started. They'll be automatically added to the queue."
             )
             return
-        
+
         # Get next citation
         citation = queue.popleft()
         processing_citations[channel_id] = citation
-        
+
         remaining = len(queue)
-        
+
         # Check if browser is already open
         browser_already_open = channel_id in active_processes and active_processes[channel_id].poll() is None
-        
+
         if browser_already_open:
             await message.reply(
                 f"📝 **Filling next citation...**\n\n"
@@ -775,9 +775,9 @@ async def handle_command(message, content):
                 f"4. Click 'Next' to get to form\n"
                 f"5. Form will auto-fill with citation data!"
             )
-        
+
         LOG.info(f"Filling: {citation['text'][:80]}… | type={citation['asset_type']} | remaining={remaining} | browser_open={browser_already_open}")
-        
+
         # Process the citation
         try:
             await fill_citation(message, citation, channel_id)
@@ -793,7 +793,7 @@ async def handle_command(message, content):
             except Exception:
                 pass
             raise
-        
+
         # Suppress extra completion chatter; a single field summary will be posted by fill_citation()
         if remaining == 0:
             # Optional minimal notification when queue becomes empty
@@ -875,7 +875,7 @@ async def slash_queue(interaction: discord.Interaction):
         except Exception:
             # Already responded or timed out
             pass
-        
+
         queue = get_queue(interaction.channel.id)
         if not queue:
             try:
@@ -883,13 +883,13 @@ async def slash_queue(interaction: discord.Interaction):
             except Exception:
                 pass
             return
-        
+
         queue_msg = f"📋 **Citation Queue ({len(queue)} items)**\n\n"
         for i, citation in enumerate(queue, 1):
             citation_preview = citation['text'][:60] + ('...' if len(citation['text']) > 60 else '')
             queue_msg += f"**{i}.** {citation['asset_type'].title()}\n   {citation_preview}\n\n"
         queue_msg += f"Use /fill to fill the next citation."
-        
+
         try:
             await interaction.followup.send(queue_msg)
         except Exception:
@@ -984,7 +984,7 @@ def _get_researcher_choices() -> List[app_commands.Choice[str]]:
 async def slash_set_researcher_dropdown(interaction: discord.Interaction):
     """Show researcher selection with dynamic dropdown."""
     choices = _get_researcher_choices()
-    
+
     # Create a simple view with a select menu
     class ResearcherSelect(discord.ui.Select):
         def __init__(self):
@@ -993,10 +993,10 @@ async def slash_set_researcher_dropdown(interaction: discord.Interaction):
                 for choice in choices
             ]
             super().__init__(placeholder="Select a researcher...", options=options, min_values=1, max_values=1)
-        
+
         async def callback(self, interaction: discord.Interaction):
             selected = self.values[0]
-            
+
             if selected == "reset":
                 default_r = _default_config().get('default_researcher')
                 config['default_researcher'] = default_r
@@ -1012,13 +1012,13 @@ async def slash_set_researcher_dropdown(interaction: discord.Interaction):
                         required=True,
                         max_length=100
                     )
-                    
+
                     async def on_submit(self, modal_interaction: discord.Interaction):
                         new_name = self.researcher_name.value.strip()
                         if not new_name:
                             await modal_interaction.response.send_message("❌ Name cannot be empty", ephemeral=True)
                             return
-                        
+
                         # Validate researcher name
                         is_valid, error_msg = validate_researcher_name(new_name)
                         if not is_valid:
@@ -1028,16 +1028,16 @@ async def slash_set_researcher_dropdown(interaction: discord.Interaction):
                             )
                             LOG.warn(f"Rejected invalid researcher name: {new_name} - {error_msg}")
                             return
-                        
+
                         # Sanitize the name
                         new_name = sanitize_text(new_name, max_length=200)
-                        
+
                         # Add to known researchers if not already there
                         known = config.get('known_researchers', [])
                         if new_name not in known:
                             known.append(new_name)
                             config['known_researchers'] = known
-                        
+
                         config['default_researcher'] = new_name
                         save_config(config)
                         await modal_interaction.response.send_message(
@@ -1045,18 +1045,18 @@ async def slash_set_researcher_dropdown(interaction: discord.Interaction):
                             f"📋 Total researchers in list: {len(known)}",
                             ephemeral=True
                         )
-                
+
                 await interaction.response.send_modal(NewResearcherModal())
             else:
                 config['default_researcher'] = selected
                 save_config(config)
                 await interaction.response.send_message(f"✅ Researcher set to: {selected}", ephemeral=True)
-    
+
     class ResearcherView(discord.ui.View):
         def __init__(self):
             super().__init__(timeout=180)  # 3 minute timeout
             self.add_item(ResearcherSelect())
-    
+
     await interaction.response.send_message(
         f"**Select Researcher**\nCurrent: {config.get('default_researcher', 'Not set')}",
         view=ResearcherView(),
@@ -1304,11 +1304,11 @@ async def fill_citation(message, citation, channel_id):
         # Create a special script call that writes to a control file
         # The automation worker will pick this up and process it
         import json
-        
+
         # Always use current config researcher (allows changing researcher without restarting)
         # This ensures that changing the researcher in the GUI affects all future fills
         current_researcher = config.get('default_researcher') or citation.get('researcher') or 'Scarano, Frank J'
-        
+
         # Write citation to a control file
         control_file = f"citation_control_{channel_id}.json"
         with open(control_file, 'w') as f:
@@ -1321,10 +1321,10 @@ async def fill_citation(message, citation, channel_id):
                 'researcher': current_researcher,  # Use current config value
                 'parsed': citation.get('parsed')
             }, f)
-        
+
         print(f"📝 Wrote citation to control file: {control_file}")
         status_file = f"citation_status_{channel_id}.json"
-        
+
         # Check for auto-restart BEFORE processing to ensure we don't exceed the limit in this session
         restart_interval = config.get('auto_restart_interval', 0)
         if restart_interval > 0 and channel_id in process_fill_counts:
@@ -1357,25 +1357,25 @@ async def fill_citation(message, citation, channel_id):
         # If browser is not open, start the automation worker
         if channel_id not in active_processes or active_processes[channel_id].poll() is not None:
             print(f"🚀 Starting persistent browser automation worker...")
-            
+
             # Use sys.executable to ensure we use the same Python interpreter
             # that's running this bot (with all packages installed)
             process = subprocess.Popen([
                 sys.executable, '-m', 'automation.worker',
                 str(channel_id)
             ], cwd=os.getcwd())
-            
+
             active_processes[channel_id] = process
             process_fill_counts[channel_id] = 0  # Reset fill count for new process
             print(f"✓ Worker started with Python: {sys.executable} (PID: {process.pid})")
-            
+
             # Wait for browser to open (short)
             await asyncio.sleep(2)
         else:
             print(f"✓ Using existing browser (PID: {active_processes[channel_id].pid})")
             # Just wait a bit for the new citation to be picked up
             await asyncio.sleep(1)
-        
+
         # Wait until worker confirms files written for this specific citation
         csv_file = "citationsPresentations.csv"
         summary_file = "filled_fields_summary.txt"
@@ -1427,7 +1427,7 @@ async def fill_citation(message, citation, channel_id):
                 await asyncio.sleep(1)
         except Exception:
             pass
-        
+
         # Post a single clear inline summary message in chat
         try:
             if os.path.exists(summary_file):
@@ -1442,13 +1442,13 @@ async def fill_citation(message, citation, channel_id):
         except Exception:
             # Non-fatal if preview fails
             pass
-            
+
         # Increment process fill count
         if channel_id in process_fill_counts:
             process_fill_counts[channel_id] += 1
         elif channel_id in active_processes:
              process_fill_counts[channel_id] = 1
-            
+
     except Exception as e:
         print(f"❌ Exception: {str(e)}")
         await message.channel.send(f"❌ **Unexpected error:** {str(e)}")
@@ -1459,14 +1459,14 @@ def main():
         print("❌ Please set DISCORD_BOT_TOKEN in your .env file")
         print("Get your bot token from: https://discord.com/developers/applications")
         return
-    
+
     print("🚀 Starting Discord Citation Bot (SMART BATCH MODE)...")
     print(f"📁 Config file: {CONFIG_PATH}")
     print(f"📺 Channel ID: {CITATION_CHANNEL_ID or 'Not set'}")
     print("📋 Browser stays open between citations!")
     print("🎯 Use !f to fill each citation, !close when done")
     print()
-    
+
     client.run(BOT_TOKEN)
 
 
@@ -1514,12 +1514,12 @@ async def add_citation_via_gui(channel_id: int, citation_text: str) -> dict:
     """Add a citation to the queue from the GUI. Returns status dict."""
     try:
         queue = get_queue(channel_id)
-        
+
         # Parse citation similar to on_message handler
         import re
         import time
         citation_lower = citation_text.lower()
-        
+
         # Detect explicit tag override
         m_tag = re.search(r"\s--(pos|pres|proc)\b", citation_lower)
         forced_type = None
@@ -1531,11 +1531,11 @@ async def add_citation_via_gui(channel_id: int, citation_text: str) -> dict:
                 forced_type = 'presentation'
             elif tag == 'proc':
                 forced_type = 'proceedings'
-        
+
         # Strip helper tags
         citation_text = re.sub(r"\s--(pos|pres|proc)\b", "", citation_text, flags=re.I)
         citation_text = re.sub(r"\(\s*pos\s*\)", "", citation_text, flags=re.I)
-        
+
         # Resolve asset type
         current_asset_mode = config.get('asset_mode', 'auto')
         if forced_type in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation"):
@@ -1544,7 +1544,7 @@ async def add_citation_via_gui(channel_id: int, citation_text: str) -> dict:
             asset_type = current_asset_mode
         else:
             asset_type = "poster" if ('poster presentation' in citation_lower or 'poster' in citation_lower or '(pos)' in citation_lower or '--pos' in citation_lower) else "presentation"
-        
+
         citation_id = f"gui_{int(time.time() * 1000)}"
         citation_data = {
             'text': citation_text,
@@ -1555,14 +1555,14 @@ async def add_citation_via_gui(channel_id: int, citation_text: str) -> dict:
             'researcher': config.get('default_researcher')
         }
         queue.append(citation_data)
-        
+
         # Stats
         try:
             config['stats']['enqueued'] += 1
             save_config(config)
         except Exception:
             pass
-        
+
         # Pre-parse in background
         try:
             from automation.presentations import parse_any_citation as _pre_parse
@@ -1577,7 +1577,7 @@ async def add_citation_via_gui(channel_id: int, citation_text: str) -> dict:
             asyncio.create_task(_do_preparse(citation_data, citation_text))
         except Exception:
             pass
-        
+
         return {
             'success': True,
             'queue_position': len(queue),
@@ -1594,13 +1594,13 @@ async def add_citation_via_gui(channel_id: int, citation_text: str) -> dict:
 async def watch_control_signals() -> None:
     """Watch for control files created by the launcher UI to drive fills or shutdown."""
     global config  # Declare at the top of the function
-    
+
     control_dir = os.getcwd()
     fill_path = os.path.join(control_dir, 'fill_next_signal')
     shutdown_path = os.path.join(control_dir, 'shutdown_signal')
     add_citation_path = os.path.join(control_dir, 'gui_add_citation.json')
     completion_status_path = os.path.join(control_dir, 'gui_completion_status.json')
-    
+
     # New GUI control files
     queue_request_path = os.path.join(control_dir, 'gui_queue_request.json')
     queue_response_path = os.path.join(control_dir, 'gui_queue.json')
@@ -1616,9 +1616,9 @@ async def watch_control_signals() -> None:
     toggle_auto_fill_authors_path = os.path.join(control_dir, 'gui_toggle_auto_fill_authors.json')
     set_author_add_delay_path = os.path.join(control_dir, 'gui_set_author_add_delay.json')
     set_restart_policy_path = os.path.join(control_dir, 'gui_set_restart_policy.json')
-    
+
     last_filled_citation_id = None
-    
+
     while True:
         try:
             if os.path.exists(shutdown_path):
@@ -1643,7 +1643,7 @@ async def watch_control_signals() -> None:
                         except Exception:
                             pass
                     active_processes.clear()
-                    
+
                     # Also kill any worker processes by name (in case they're orphaned)
                     try:
                         import psutil
@@ -1658,7 +1658,7 @@ async def watch_control_signals() -> None:
                         # psutil not available, use subprocess
                         try:
                             import subprocess as sp
-                            sp.run(['pkill', '-TERM', '-f', 'automation.worker'], 
+                            sp.run(['pkill', '-TERM', '-f', 'automation.worker'],
                                   timeout=2, capture_output=True)
                         except Exception:
                             pass
@@ -1724,7 +1724,7 @@ async def watch_control_signals() -> None:
                             json.dump({'success': False, 'error': str(e)}, f)
                     except Exception:
                         pass
-            
+
             # Handle set restart policy request
             if os.path.exists(set_restart_policy_path):
                 try:
@@ -1753,7 +1753,7 @@ async def watch_control_signals() -> None:
                 try:
                     with open(add_citation_path, 'r', encoding='utf-8') as f:
                         add_data = json.load(f)
-                    
+
                     # Skip if this is already a response (has 'success' key)
                     if 'success' in add_data:
                         # Already processed, clean it up
@@ -1765,7 +1765,7 @@ async def watch_control_signals() -> None:
                         citation_text = add_data.get('text', '').strip()
                         # Use the CITATION_CHANNEL_ID loaded at startup instead of re-reading from env
                         channel_id = int(CITATION_CHANNEL_ID) if CITATION_CHANNEL_ID and CITATION_CHANNEL_ID.isdigit() else None
-                        
+
                         if not citation_text:
                             LOG.warn(f"GUI: No citation text in add request, removing file")
                             try:
@@ -1789,7 +1789,7 @@ async def watch_control_signals() -> None:
                             json.dump({'success': False, 'error': str(e)}, f)
                     except Exception:
                         pass
-            
+
             # Handle fill next signal
             if os.path.exists(fill_path):
                 try:
@@ -1817,7 +1817,7 @@ async def watch_control_signals() -> None:
                     await trigger_fill_for_channel(channel_id)
                 else:
                     LOG.warn(f"GUI: Cannot fill - no channel ID configured")
-            
+
             # Update completion status by checking if the citation was processed
             channel_id = int(CITATION_CHANNEL_ID) if CITATION_CHANNEL_ID and CITATION_CHANNEL_ID.isdigit() else None
             if channel_id is not None and last_filled_citation_id:
@@ -1854,7 +1854,7 @@ async def watch_control_signals() -> None:
                                 pass
                     except Exception:
                         pass
-            
+
             # Handle queue request from GUI
             if os.path.exists(queue_request_path):
                 try:
@@ -1874,7 +1874,7 @@ async def watch_control_signals() -> None:
                     os.remove(queue_request_path)
                 except Exception:
                     pass
-            
+
             # Handle clear queue request
             if os.path.exists(clear_queue_path):
                 try:
@@ -1896,7 +1896,7 @@ async def watch_control_signals() -> None:
                             json.dump({'success': False, 'error': str(e)}, f)
                     except Exception:
                         pass
-            
+
             # Handle pause request
             if os.path.exists(pause_path):
                 try:
@@ -1905,7 +1905,7 @@ async def watch_control_signals() -> None:
                     os.remove(pause_path)
                 except Exception:
                     pass
-            
+
             # Handle resume request
             if os.path.exists(resume_path):
                 try:
@@ -1914,7 +1914,7 @@ async def watch_control_signals() -> None:
                     os.remove(resume_path)
                 except Exception:
                     pass
-            
+
             # Handle skip request
             if os.path.exists(skip_path):
                 try:
@@ -1937,7 +1937,7 @@ async def watch_control_signals() -> None:
                             json.dump({'success': False, 'error': str(e)}, f)
                     except Exception:
                         pass
-            
+
             # Handle set researcher request
             if os.path.exists(set_researcher_path):
                 try:
@@ -1966,7 +1966,7 @@ async def watch_control_signals() -> None:
                             json.dump({'success': False, 'error': str(e)}, f)
                     except Exception:
                         pass
-            
+
             # Handle set asset type request
             if os.path.exists(set_asset_type_path):
                 try:
@@ -1995,7 +1995,7 @@ async def watch_control_signals() -> None:
                             json.dump({'success': False, 'error': str(e)}, f)
                     except Exception:
                         pass
-            
+
             # Handle add topic request
             if os.path.exists(add_topic_path):
                 try:
@@ -2018,10 +2018,10 @@ async def watch_control_signals() -> None:
                                         cfg = json.load(f)
                                 except Exception:
                                     cfg = load_config()
-                                
+
                                 topics_by_channel = cfg.setdefault('additional_topics', {})
                                 lst = topics_by_channel.get(channel_id, [])
-                                
+
                                 if topic in lst:
                                     with open(add_topic_path, 'w', encoding='utf-8') as f:
                                         json.dump({'success': False, 'error': 'Topic already exists'}, f)
@@ -2036,12 +2036,12 @@ async def watch_control_signals() -> None:
                                             json.dump(cfg, f, ensure_ascii=False, indent=2)
                                     except Exception:
                                         save_config(cfg)
-                                    
+
                                     # Update in-memory config
                                     if isinstance(config, dict):
                                         config.setdefault('additional_topics', {})
                                         config['additional_topics'][channel_id] = lst
-                                    
+
                                     with open(add_topic_path, 'w', encoding='utf-8') as f:
                                         json.dump({'success': True, 'topic': topic, 'count': len(lst)}, f)
                             else:
@@ -2053,7 +2053,7 @@ async def watch_control_signals() -> None:
                             json.dump({'success': False, 'error': str(e)}, f)
                     except Exception:
                         pass
-            
+
             # Handle remove topic request
             if os.path.exists(remove_topic_path):
                 try:
@@ -2076,10 +2076,10 @@ async def watch_control_signals() -> None:
                                         cfg = json.load(f)
                                 except Exception:
                                     cfg = load_config()
-                                
+
                                 topics_by_channel = cfg.setdefault('additional_topics', {})
                                 lst = topics_by_channel.get(channel_id, [])
-                                
+
                                 if topic in lst:
                                     lst.remove(topic)
                                     topics_by_channel[channel_id] = lst
@@ -2088,12 +2088,12 @@ async def watch_control_signals() -> None:
                                             json.dump(cfg, f, ensure_ascii=False, indent=2)
                                     except Exception:
                                         save_config(cfg)
-                                    
+
                                     # Update in-memory config
                                     if isinstance(config, dict):
                                         config.setdefault('additional_topics', {})
                                         config['additional_topics'][channel_id] = lst
-                                    
+
                                     with open(remove_topic_path, 'w', encoding='utf-8') as f:
                                         json.dump({'success': True, 'topic': topic, 'count': len(lst)}, f)
                                 else:
@@ -2108,7 +2108,7 @@ async def watch_control_signals() -> None:
                             json.dump({'success': False, 'error': str(e)}, f)
                     except Exception:
                         pass
-            
+
             # Handle clear topics request
             if os.path.exists(clear_topics_path):
                 try:
@@ -2127,23 +2127,23 @@ async def watch_control_signals() -> None:
                                         cfg = json.load(f)
                                 except Exception:
                                     cfg = load_config()
-                                
+
                                 topics_by_channel = cfg.setdefault('additional_topics', {})
                                 had = list(topics_by_channel.get(channel_id, []))
-                                
+
                                 if channel_id in topics_by_channel:
                                     del topics_by_channel[channel_id]
-                                
+
                                 try:
                                     with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
                                         json.dump(cfg, f, ensure_ascii=False, indent=2)
                                 except Exception:
                                     save_config(cfg)
-                                
+
                                 # Update in-memory config
                                 if isinstance(config, dict) and isinstance(config.get('additional_topics'), dict):
                                     config['additional_topics'].pop(channel_id, None)
-                                
+
                                 with open(clear_topics_path, 'w', encoding='utf-8') as f:
                                     json.dump({'success': True, 'cleared': len(had)}, f)
                             else:

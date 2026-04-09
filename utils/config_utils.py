@@ -196,4 +196,3 @@ def get_additional_topics_for_channel(channel_id: str) -> List[str]:
         if len(clean) >= 6:
             break
     return clean
-
