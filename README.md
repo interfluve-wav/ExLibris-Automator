@@ -10,6 +10,8 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 python -m playwright install chromium
+pip install pre-commit
+pre-commit install
 
 # 2) Configure secrets and runtime settings
 cp docs/ENV_EXAMPLE.md .env
@@ -42,15 +44,15 @@ Common optional variables:
 
 ## Primary Run Modes
 
-- `./start_all.sh`  
+- `./start_all.sh`
   Starts both:
   - Discord bot (`discord_bot_batch_smart.py`)
   - Flask control panel (`esp_gui_web.py`)
 
-- `./start_smart_batch.sh`  
+- `./start_smart_batch.sh`
   Runs the Discord bot stack directly.
 
-- `run_esp_app.command`  
+- `run_esp_app.command`
   macOS launcher for local interactive usage.
 
 ## How It Works
@@ -67,22 +69,22 @@ Common optional variables:
 
 ## Architecture Overview
 
-- `discord_bot_batch_smart.py`  
+- `discord_bot_batch_smart.py`
   Command handling, queueing, worker orchestration, and bot-facing status.
 
-- `esp_gui_web.py`  
+- `esp_gui_web.py`
   Flask UI/API for queue control, status display, and local operations.
 
-- `automation/worker.py`  
+- `automation/worker.py`
   Persistent Playwright session that processes one citation at a time.
 
-- `automation/*_impl.py`  
+- `automation/*_impl.py`
   Asset-type-specific parsing and Esploro field automation logic.
 
-- `openai_parser.py`  
+- `openai_parser.py`
   OpenAI-based parsing and normalization helpers.
 
-- `utils/ipc_protocol.py`  
+- `utils/ipc_protocol.py`
   Protocol definitions for file-based IPC payloads.
 
 ## Operator Notes
@@ -97,6 +99,13 @@ Common optional variables:
 # parser checks
 python test_citations.py
 python test_parser_simple.py
+
+# smoke checks
+python -m unittest tests/test_status_and_standalone.py
+python deployment/validate_env.py
+
+# pre-commit checks (format/lint/secret scan)
+pre-commit run --all-files
 
 # benchmark suite
 python tests/performance_tests.py
