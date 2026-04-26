@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>ExLibris Automator Matcher</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/css/output.css">
+    <script>
+        (function() {
+            var saved = localStorage.getItem('theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+</head>
+<body class="p-5">
+    <div class="max-w-[800px] mx-auto bg-surface rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-br from-[#1e293b] via-[#334155] to-[#1e293b] bg-[length:200%_200%] animate-gradient-shift text-white py-7 px-7 text-center">
+            <h1 class="text-[28px] font-bold mb-2.5">🔍 Citation Matcher</h1>
+            <div class="mt-4 flex flex-wrap justify-center items-center gap-2">
+                <a href="/" class="nav-link">Control Panel</a>
+                <a href="/matcher" class="nav-link bg-white/40">Citation Matcher</a>
+                <div class="nav-logs-wrap relative inline-block" id="logsDropdownWrap">
+                    <button type="button" class="nav-logs-trigger" id="logsTrigger" aria-expanded="false" aria-haspopup="true" onclick="toggleLogsMenu(event)">Logs ▾</button>
+                    <div class="nav-logs-menu" id="logsMenu" role="menu">
+                        <button type="button" class="nav-logs-item" role="menuitem" onclick="openLogModal('discord'); closeLogsMenu();">Discord Bot</button>
+                        <button type="button" class="nav-logs-item" role="menuitem" onclick="openLogModal('worker'); closeLogsMenu();">Citation Filler</button>
+                    </div>
+                </div>
+                <button type="button" id="themeToggle" onclick="toggleTheme()" class="nav-logs-trigger" aria-label="Toggle dark mode" title="Toggle dark/light mode">
+                    <span id="themeIcon">☀️</span>
+                </button>
+            </div>
+        </div>
+        <div class="p-7">
+            <div class="section">
+                <div class="section-title">1. Enter Search Text</div>
+                <textarea id="searchText" placeholder="Enter citation text to find matches for..." class="min-h-[100px]"></textarea>
+            </div>
+
+            <div class="section">
+                <div class="section-title">2. Upload Source File</div>
+                <div class="file-upload">
+                    <input type="file" id="sourceFile" accept=".pdf,.doc,.docx,.xlsx,.xls,.txt">
+                    <div class="text-xs text-txt-muted mt-1.5">Supports PDF, Word (DOC/DOCX), Excel, Text</div>
+                </div>
+                <button onclick="findMatches()">Find Matches</button>
+            </div>
+
+            <div id="resultsArea" class="results-area">
+                <div class="section-title">Matches Found: <span id="matchCount">0</span></div>
+                <textarea id="matchesOutput" readonly class="min-h-[300px] bg-surface text-txt cursor-text"></textarea>
+                <div class="flex gap-2.5">
+                    <button onclick="addToControlPanel()" class="action-btn btn-accent">Add to Control Panel</button>
+                    <button onclick="copyToClipboard()" class="action-btn btn-success">Copy to Clipboard</button>
+                    <button onclick="downloadMatches()" class="action-btn btn-secondary" id="downloadBtn">Download .txt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="logModal" class="modal-overlay" onclick="if (event.target === this) closeLogModal();">
+        <div class="modal-shell p-6 max-w-[720px] w-[92%] max-h-[85vh] flex flex-col m-5" onclick="event.stopPropagation();">
+            <div class="flex justify-between items-center mb-3 gap-3 sticky top-0 z-[2] bg-surface pb-2">
+                <h2 id="logModalTitle" class="text-xl m-0">Logs</h2>
+                <button type="button" onclick="closeLogModal()" class="modal-close-btn">Close</button>
+            </div>
+            <p id="logModalHint" class="text-[13px] text-txt-muted mb-2.5 hidden leading-snug"></p>
+            <pre id="logModalBody" class="log-modal-body"></pre>
+            <div class="sticky bottom-0 bg-surface pt-2.5 mt-2.5">
+                <button type="button" onclick="refreshLogs()" class="w-full">Refresh</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            var isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcon();
+        }
+        function updateThemeIcon() {
+            var isDark = document.documentElement.classList.contains('dark');
+            var icon = document.getElementById('themeIcon');
+            var btn = document.getElementById('themeToggle');
+            if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+            if (btn) {
+                btn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+                btn.setAttribute('title', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+            }
+        }
+        updateThemeIcon();
+    </script>
+    <script>
+        let currentMatches = [];
+        let currentLogKind = 'discord';
+
+        function closeLogsMenu() {
+            const w = document.getElementById('logsDropdownWrap');
+            const t = document.getElementById('logsTrigger');
+            if (w) w.classList.remove('is-open');
+            if (t) t.setAttribute('aria-expanded', 'false');
+        }
+
+        function toggleLogsMenu(e) {
+            e.stopPropagation();
+            const w = document.getElementById('logsDropdownWrap');
+            const t = document.getElementById('logsTrigger');
+            if (!w || !t) return;
+            const open = !w.classList.contains('is-open');
+            w.classList.toggle('is-open', open);
+            t.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        function openLogModal(kind) {
+            currentLogKind = kind;
+            const title = kind === 'discord' ? 'Discord Bot logs' : 'Citation Filler logs';
+            const el = document.getElementById('logModalTitle');
+            if (el) el.textContent = title;
+            const modal = document.getElementById('logModal');
+            if (modal) modal.style.display = 'flex';
+            refreshLogs();
+        }
+
+        function closeLogModal() {
+            const modal = document.getElementById('logModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function refreshLogs() {
+            const body = document.getElementById('logModalBody');
+            const hintEl = document.getElementById('logModalHint');
+            if (!body) return;
+            body.textContent = 'Loading…';
+            if (hintEl) {
+                hintEl.style.display = 'none';
+                hintEl.textContent = '';
+            }
+            fetch('/api/logs?kind=' + encodeURIComponent(currentLogKind))
+                .then(r => r.json())
+                .then(data => {
+                    body.textContent = (data.text !== undefined && data.text !== null) ? data.text : (data.error || '(no data)');
+                    if (hintEl && data.hint) {
+                        hintEl.textContent = data.hint;
+                        hintEl.style.display = 'block';
+                    }
+                })
+                .catch(err => {
+                    body.textContent = 'Request failed: ' + err.message;
+                });
+        }
+
+        document.addEventListener('click', function () { closeLogsMenu(); });
+        document.getElementById('logsDropdownWrap')?.addEventListener('click', function (e) { e.stopPropagation(); });
+
+        function findMatches() {
+            const text = document.getElementById('searchText').value.trim();
+            const fileInput = document.getElementById('sourceFile');
+
+            if (!text) {
+                alert('Please enter search text');
+                return;
+            }
+            if (fileInput.files.length === 0) {
+                alert('Please select a file');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('text', text);
+            formData.append('file', fileInput.files[0]);
+
+            const btn = document.querySelector('button');
+            const originalText = btn.textContent;
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
+
+            fetch('/api/match_citations', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+
+                if (data.success) {
+                    displayMatches(data.matches);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(err => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+                alert('Error: ' + err.message);
+            });
+        }
+
+        function displayMatches(matches) {
+            currentMatches = matches;
+            const resultsArea = document.getElementById('resultsArea');
+            const matchesOutput = document.getElementById('matchesOutput');
+            const countSpan = document.getElementById('matchCount');
+            const downloadBtn = document.getElementById('downloadBtn');
+
+            resultsArea.style.display = 'block';
+            countSpan.textContent = matches.length;
+
+            if (matches.length === 0) {
+                matchesOutput.value = "No matches found.";
+                downloadBtn.style.display = 'none';
+            } else {
+                matchesOutput.value = matches.join('\n\n');
+                downloadBtn.style.display = 'inline-block';
+            }
+        }
+
+        function addToControlPanel() {
+            const matchesOutput = document.getElementById('matchesOutput');
+            const text = matchesOutput.value;
+
+            if (!text || text === "No matches found.") {
+                alert("No matches to add.");
+                return;
+            }
+
+            localStorage.setItem('pendingCitations', text);
+            window.location.href = "/";
+        }
+
+        function copyToClipboard() {
+            const matchesOutput = document.getElementById('matchesOutput');
+            matchesOutput.select();
+            document.execCommand('copy');
+
+            const btn = document.querySelector('button[onclick="copyToClipboard()"]');
+            const originalLabel = btn.textContent;
+            btn.textContent = "Copied!";
+            setTimeout(() => {
+                btn.textContent = originalLabel;
+            }, 1500);
+        }
+
+        function downloadMatches() {
+            if (currentMatches.length === 0) return;
+
+            const content = currentMatches.join('\n\n');
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'matches.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

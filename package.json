@@ -1,0 +1,23 @@
+{
+  "name": "workspace",
+  "version": "1.0.0",
+  "description": "ExLibris Automator is a Python automation tool that parses academic citations and fills Esploro forms using a persistent Playwright worker. It is operated primarily through Discord commands and a local web control panel.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./src/input.css -o ./static/css/output.css --minify",
+    "watch:css": "npx tailwindcss -i ./src/input.css -o ./static/css/output.css --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  },
+  "dependencies": {
+    "@material-tailwind/html": "^2.3.2"
+  }
+}

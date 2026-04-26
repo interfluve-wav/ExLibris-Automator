@@ -1,0 +1,54 @@
+{
+  "instructions": "This file configures citation parsing tweaks.\n\nHow to use: \n- ordinal_words: Add mappings from textual ordinal words to numbers. Keys are case-insensitive. You may include hyphenated or spaced forms (e.g., 'twenty-first' or 'twenty first').\n- tens_bases: Words that can combine with ordinal_words to form compound ordinals (e.g., 'twenty' + 'first' => 21).\n- tens_ordinals: Standalone ordinal words that already end in '...ieth' (e.g., 'thirtieth' => 30).\n- number_overrides: Targeted regex-based rules to set a conference number and optionally remove the match from the conference name.\n- conference_name_strips: Regex patterns to remove from conference_name after number extraction (e.g., to strip redundant tokens).\n\nExtending examples: \n- To support another language or rare word (e.g., 'duodecimal' => 12), add it under ordinal_words.\n- For hyphen or space forms, add explicit keys if needed; matching is flexible but explicit entries help.\n- For a specific conference pattern, add a number_overrides entry with a 'pattern' and 'number'.\n",
+  "ordinal_words": {
+    "first": 1,
+    "second": 2,
+    "third": 3,
+    "fourth": 4,
+    "fifth": 5,
+    "sixth": 6,
+    "seventh": 7,
+    "eighth": 8,
+    "ninth": 9,
+    "tenth": 10,
+    "eleventh": 11,
+    "twelfth": 12,
+    "thirteenth": 13,
+    "fourteenth": 14,
+    "fifteenth": 15,
+    "sixteenth": 16,
+    "seventeenth": 17,
+    "eighteenth": 18,
+    "nineteenth": 19
+  },
+  "tens_bases": {
+    "twenty": 20,
+    "thirty": 30,
+    "forty": 40,
+    "fifty": 50,
+    "sixty": 60,
+    "seventy": 70,
+    "eighty": 80,
+    "ninety": 90
+  },
+  "tens_ordinals": {
+    "twentieth": 20,
+    "thirtieth": 30,
+    "fortieth": 40,
+    "fiftieth": 50,
+    "sixtieth": 60,
+    "seventieth": 70,
+    "eightieth": 80,
+    "ninetieth": 90
+  },
+  "number_overrides": [
+    {
+      "pattern": "\\b(eighth)\\b",
+      "number": "8",
+      "strip_match_from_name": true
+    }
+  ],
+  "conference_name_strips": [
+    "\\s{2,}"
+  ]
+}

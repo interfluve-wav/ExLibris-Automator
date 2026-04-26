@@ -1,0 +1,35 @@
+{
+  "default_researcher": "Williams, Brian G",
+  "asset_mode": "ad_media_mention",
+  "paused": false,
+  "stats": {
+    "enqueued": 1168,
+    "processed": 769,
+    "errors": 28
+  },
+  "dedupe": {
+    "seen": {},
+    "max": 2000
+  },
+  "additional_topics": {
+    "1422406869070254180": [
+      "History Education",
+      "National Security",
+      "Conventional Warfare"
+    ]
+  },
+  "auto_fill_authors": true,
+  "author_add_delay_ms": 500,
+  "known_researchers": [
+    "Chang, W. Joseph",
+    "Rillahan, Christopher B",
+    "Valova, Iren",
+    "Gendron, Paul",
+    "Zavell, Max",
+    "Soltanisehat, Leili",
+    "Beardsley, Ashley",
+    "Buck, John R",
+    "Wang, Cheng"
+  ],
+  "auto_restart_interval": 7
+}
