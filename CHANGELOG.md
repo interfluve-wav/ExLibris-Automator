@@ -16,6 +16,51 @@ _Nothing yet — add new entries here as work lands._
 
 ---
 
+## [0.3.0] — 2026-05-11
+
+Reverts the Ad Media Mention asset type introduced in `0.2.0`. The flow caused
+regressions across the rest of the deposit pipeline and was rolled back end-to-
+end. The shared selector fix from `0.2.0` is **retained**, since it addresses a
+real Playwright strict-mode bug that affects every asset type, not just Media
+Mentions.
+
+### Removed
+- **Ad Media Mention asset type, end-to-end.**
+  - Deleted modules: `automation/ad_media_mention.py`,
+    `automation/ad_media_mention_impl.py`.
+  - Deleted standalone capture script:
+    `scripts/esploro_media_mentions_playwright.py`.
+  - Deleted source data file: `src/Media Mentions Data.md`.
+  - Worker (`automation/worker.py`): removed the `ad_media_mention` entry from
+    `ASSET_TYPE_HANDLERS`, the `manual_parse_modules` fallback map, and the
+    module import.
+  - Asset-type registry (`utils/asset_type_utils.py`): removed
+    `ad_media_mention` from `VALID_CONFIG_MODES`, `ASSET_TYPE_TO_CONFIG_MODE`,
+    `CONFIG_MODE_TO_ASSET_TYPE`, and the `normalize_config_mode` alias map.
+  - UI (`templates/index.html`): removed the `Ad Media Mention` option from the
+    asset-type dropdown.
+  - Discord bot (`discord_bot_batch_smart.py`): removed `ad_media_mention` from
+    all asset-type tuples and validation strings, the `!set type` help text,
+    the `elif asset_type == "ad_media_mention":` display branch, and both
+    `app_commands.Choice(...)` entries on the `/set_type` and `/add` slash
+    commands.
+- AGENTS notes: removed the "classify coverage as Media Mention (not Book)"
+  taxonomy preference, since the implementation it informed is gone.
+
+### Retained from `0.2.0`
+- The researcher autocomplete strict-mode fix
+  (`a.dropdown-item.ui-menu-item-wrapper` scoping) stays — it fixes a real bug
+  in every asset-type flow and is not tied to Media Mentions.
+- The per-line citation splitting in `/api/add` stays — it is an independent
+  operator-paste UX improvement.
+
+### Operator note
+Anyone whose `bot_config.json` still has `"asset_mode": "ad_media_mention"`
+should change it (the UI dropdown defaults to `auto`); otherwise the worker
+will reject the mode at validation time and fall back to `auto`.
+
+---
+
 ## [0.2.0] — 2026-05-11
 
 First documented release on the `JIT` branch. Establishes the Ad Media Mention

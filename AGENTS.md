@@ -5,7 +5,6 @@
 - For matching/automation logic, prefers strict primary matching first, then explicit fallback behavior.
 - Prefers preserving the existing local interactive workflow (`./start_all.sh`) over Docker-first operation.
 - Wants queue indicators to reflect current-run remaining citations rather than lifetime totals.
-- For Esploro taxonomy, classify coverage of a research output as `Media Mention` (not `Book`).
 - For Esploro Playwright capture, start from the exact Esploro login URL and leave final submit/save clicks to the user when requested.
 - Prefers fully persistent execution (keep going end-to-end until done) instead of stopping at partial progress.
 
