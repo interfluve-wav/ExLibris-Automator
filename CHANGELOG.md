@@ -12,7 +12,23 @@ minor release.
 
 ## [Unreleased]
 
-_Nothing yet — add new entries here as work lands._
+### Added
+- `docs/ARCHITECTURE.md` — authoritative stack reference, process model,
+  module map, end-to-end dataflow, configuration/state, deploy targets, and
+  testing notes. This is now the canonical "how does this work" document.
+- `CONTRIBUTING.md` — branching model (`JIT` working branch), Conventional
+  Commits policy, PR checklist, Python / Playwright / frontend / shell
+  coding standards, pre-commit + TruffleHog guidance.
+- `SECURITY.md` — supported versions, secret inventory, exposure response
+  runbook (rotate first, fix repo second), CI scanning notes, network
+  exposure constraints, contributor defense-in-depth checklist.
+
+### Changed
+- `README.md` — added a real **Tech Stack** table with versions and roles,
+  expanded the Documentation Map to link the new docs, bumped the Python
+  prerequisite note to reflect the 3.12 pin.
+- `docs/INDEX.md` — re-grouped by user goal (new here / contributing /
+  operator / setup / architecture) and links every newly added doc.
 
 ---
 

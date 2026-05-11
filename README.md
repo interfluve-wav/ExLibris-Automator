@@ -1,6 +1,16 @@
 # ExLibris Automator (Esploro Bot)
 
-A Python automation suite that streamlines entry of academic citations into the UMassD Esploro research repository. It uses AI-driven parsing (OpenAI GPT-4o-mini) to extract metadata from citations and browser automation (Playwright) to populate web forms automatically.
+A Python automation suite that streamlines entry of academic citations into
+the UMass Dartmouth Esploro research repository. AI-driven parsing
+(OpenAI GPT-4o-mini, with a regex fallback) extracts metadata from each
+citation, and a persistent Playwright worker drives Chromium to fill the
+Esploro deposit forms — leaving the final save/submit click to a human
+operator.
+
+> **New here?** Read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the
+> canonical stack and process model. Read [`CONTRIBUTING.md`](CONTRIBUTING.md)
+> before sending a PR. See [`SECURITY.md`](SECURITY.md) before touching
+> anything that handles credentials.
 
 ---
 
@@ -15,11 +25,38 @@ A Python automation suite that streamlines entry of academic citations into the 
 
 ---
 
+## Tech Stack
+
+| Layer | Tech | Version | Role |
+|---|---|---|---|
+| Language | CPython | `3.12.13` (pinned) | All backend + automation code |
+| Web | Flask + Werkzeug | 3.0.3 | Local control-panel UI and JSON API |
+| WSGI (optional) | gunicorn | latest | Production serving |
+| Browser automation | Playwright (Python) | 1.54.0 | Drives Chromium against Esploro |
+| LLM parsing | openai | 1.58.1 | GPT-4o-mini citation parser |
+| Fuzzy matching | rapidfuzz | 3.6.1 | Citation dedup / matcher UI |
+| Document intake | PyPDF2 3.0.1, python-docx 1.1.0, pandas 2.2.0, openpyxl 3.1.2, xlrd 2.0.1 | — | PDF / DOCX / XLSX parsing |
+| Discord (optional) | discord.py | 2.6.3 | Slash + text commands |
+| Config / env | python-dotenv | 1.0.1 | `.env` loading |
+| HTTP | requests | 2.32.3 | Light HTTP utility |
+| Frontend tooling | tailwindcss + `@material-tailwind/html` | 3.4.19 + 2.3.2 | Compiled to `static/css/output.css` |
+| Templates | Jinja2 (via Flask) + plain HTML | — | `templates/index.html`, `templates/matcher.html` (no SPA) |
+| State | JSON files (`bot_config.json`, `citations_config.json`) | — | No database |
+| IPC | File-based JSON (`citation_control_*.json`, `citation_status_*.json`, `gui_*.json`) | — | See [`docs/IPC_PROTOCOL.md`](docs/IPC_PROTOCOL.md) |
+| Process orchestration | Bash launchers | — | `start_all.sh`, `run_standalone.command`, `start_smart_batch.sh`, `start_desktop.sh` |
+| Deploy targets | Local macOS (primary), systemd (`deployment/`), Replit (legacy) | — | See [`deployment/DEPLOYMENT.md`](deployment/DEPLOYMENT.md) |
+| Dev safety | `.pre-commit-config.yaml`, TruffleHog secret scan in CI | — | See [`SECURITY.md`](SECURITY.md) |
+
+For the deep dive (process model, module map, data flow, configuration
+state), see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+---
+
 ## Quick Start
 
 ### Prerequisites
 
-- Python 3.10+
+- Python **3.12** (pinned in `.python-version`; minimum 3.10)
 - Node.js 18+ (for Tailwind CSS builds)
 - Playwright browsers installed (`playwright install chromium`)
 
@@ -293,12 +330,16 @@ Citation processing rules: keyword mappings, asset type detection patterns, and 
 ## Documentation Map
 
 - [`CHANGELOG.md`](CHANGELOG.md) — Version history and release notes
-- `docs/INDEX.md` — Documentation entry point
-- `docs/SMART_BATCH_GUIDE.md` — Daily operator workflow
-- `docs/COMMANDS_REFERENCE.md` — Bot and UI command reference
-- `docs/IPC_PROTOCOL.md` — IPC payload contracts
-- `docs/DISCORD_SETUP.md` — Discord bot setup
-- `docs/OPERATIONS_RUNBOOK.md` — Startup, health checks, and recovery
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — Branching, commit style, PR checklist, coding standards
+- [`SECURITY.md`](SECURITY.md) — Secret handling, CI scanning, vulnerability reporting
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Authoritative stack, process model, module map, dataflow
+- [`docs/INDEX.md`](docs/INDEX.md) — Full documentation directory
+- [`docs/SMART_BATCH_GUIDE.md`](docs/SMART_BATCH_GUIDE.md) — Daily operator workflow
+- [`docs/COMMANDS_REFERENCE.md`](docs/COMMANDS_REFERENCE.md) — Bot and UI command reference
+- [`docs/IPC_PROTOCOL.md`](docs/IPC_PROTOCOL.md) — IPC payload contracts
+- [`docs/DISCORD_SETUP.md`](docs/DISCORD_SETUP.md) — Discord bot setup
+- [`docs/OPERATIONS_RUNBOOK.md`](docs/OPERATIONS_RUNBOOK.md) — Startup, health checks, and recovery
+- [`deployment/DEPLOYMENT.md`](deployment/DEPLOYMENT.md) — systemd / production deployment
 
 ---
 
