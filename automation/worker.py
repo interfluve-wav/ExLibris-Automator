@@ -83,7 +83,6 @@ from automation import journal as journal_mod
 from automation import proceedings as proceedings_mod
 from automation import abstract as abstract_mod
 from automation import technical_documentation as technical_documentation_mod
-from automation import ad_media_mention as ad_media_mention_mod
 
 # Create asset type dispatch table (cleaner than if-elif chains)
 ASSET_TYPE_HANDLERS = {
@@ -116,11 +115,6 @@ ASSET_TYPE_HANDLERS = {
         'parse': getattr(technical_documentation_mod, "parse_any_citation"),
         'process': getattr(technical_documentation_mod, "process_citation"),
         'display': "Technical Documentation"
-    },
-    'ad_media_mention': {
-        'parse': getattr(ad_media_mention_mod, "parse_any_citation"),
-        'process': getattr(ad_media_mention_mod, "process_citation"),
-        'display': "Ad Media Mention"
     },
     'presentation': {
         'parse': getattr(presentations_mod, "parse_any_citation"),
@@ -228,7 +222,6 @@ def _try_parse_with_fallback(normalized_text: str, asset_type: str, parse_fn, pr
             'proceedings': 'automation.proceedings_impl',
             'abstract': 'automation.abstract_impl',
             'technical_documentation': 'automation.technical_documentation_impl',
-            'ad_media_mention': 'automation.ad_media_mention_impl',
             'presentation': 'automation.presentations_impl'
         }
 
