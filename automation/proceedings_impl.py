@@ -196,7 +196,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
 
     page.get_by_role("textbox", name="Researcher").click()
     page.get_by_role("textbox", name="Researcher").fill(researcher)
-    page.get_by_text(researcher).click()
+    page.locator("a.dropdown-item.ui-menu-item-wrapper").filter(has_text=researcher).first.click()
 
     # Asset type: Conference proceeding
     page.get_by_role("combobox", name="Select an item from the list").click()
@@ -695,7 +695,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
     researcher = (citation_data.get('researcher') or os.getenv('DEFAULT_RESEARCHER') or 'Scarano, Frank J').strip()
     page.get_by_role('textbox', name='Researcher').click()
     page.get_by_role('textbox', name='Researcher').fill(researcher)
-    page.get_by_text(researcher).click()
+    page.locator("a.dropdown-item.ui-menu-item-wrapper").filter(has_text=researcher).first.click()
 
   # Asset Type Selection
 
