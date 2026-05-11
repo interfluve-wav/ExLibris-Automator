@@ -230,6 +230,7 @@ All endpoints are served from the Flask app.
 | Book Chapter | `automation/book_chapters_impl.py` | Chapters in edited books |
 | Abstract | `automation/abstract_impl.py` | Conference abstracts |
 | Technical Documentation | `automation/technical_documentation_impl.py` | Technical reports and docs |
+| Ad Media Mention | `automation/ad_media_mention_impl.py` | Press / media coverage of research (news articles, expert quotes, interviews); selectable via `set_asset_type=ad_media_mention`. Delegates to the Presentation flow with media-specific parsing. |
 
 ---
 
@@ -292,6 +293,7 @@ Citation processing rules: keyword mappings, asset type detection patterns, and 
 
 ## Documentation Map
 
+- [`CHANGELOG.md`](CHANGELOG.md) — Version history and release notes
 - `docs/INDEX.md` — Documentation entry point
 - `docs/SMART_BATCH_GUIDE.md` — Daily operator workflow
 - `docs/COMMANDS_REFERENCE.md` — Bot and UI command reference
