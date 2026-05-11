@@ -8,8 +8,9 @@ Treat this codebase as credential-adjacent and apply the practices below.
 
 ## 1. Supported versions
 
-The project ships from the `JIT` branch. Only the most recent commit on `JIT`
-is supported with fixes. Older commits are kept for history only.
+The project ships from the `v7` branch. Only the most recent commit on `v7`
+is supported with fixes. Older commits and the archived `jit-backup-…`
+branch are kept for history only.
 
 ---
 
@@ -94,7 +95,7 @@ discover a security issue:
 
 A fix-or-mitigation timeline of **7 days** is the target for credential or
 authentication issues. Lower-severity issues are handled on the next
-practical release of the `JIT` branch.
+practical release of the `v7` branch.
 
 ---
 

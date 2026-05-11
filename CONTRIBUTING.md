@@ -68,8 +68,10 @@ already the default in `run_standalone.command`.
 
 ## 3. Branching & commits
 
-- **Branch from `JIT`** for active development (this is the working branch).
-  `main` is the upstream-tracking branch and only receives merged work.
+- **Branch from `v7`** for active development (this is the working branch).
+  `main` is the upstream-tracking branch and only receives merged work. The
+  legacy `JIT` branch has been retired; its history lives on `v7` and on the
+  archived `jit-backup-2026-04-26` safety branch.
 - **Branch names:** `fix/<slug>`, `feat/<slug>`, `chore/<slug>`,
   `docs/<slug>`, `revert/<slug>`.
 - **Commit style:** Conventional Commits, lowercased subjects, imperative
@@ -88,7 +90,7 @@ already the default in `run_standalone.command`.
 - **One logical change per commit.** Five small commits beats one giant one
   if it makes the history bisectable.
 - **Never `git commit --amend` after pushing**, and never `git push --force`
-  to `main` or `JIT` without explicit owner approval.
+  to `main` or `v7` without explicit owner approval.
 
 Example:
 
@@ -105,7 +107,7 @@ menu link, causing a Playwright strict-mode violation on names like
 
 ## 4. Pull requests
 
-PRs target `JIT`. Before opening:
+PRs target `v7`. Before opening:
 
 - [ ] `./run_standalone.command` boots and `GET /api/status` returns 200.
 - [ ] If you touched `automation/`, smoke-test by enqueueing one citation

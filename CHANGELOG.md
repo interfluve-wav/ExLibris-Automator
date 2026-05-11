@@ -16,9 +16,10 @@ minor release.
 - `docs/ARCHITECTURE.md` — authoritative stack reference, process model,
   module map, end-to-end dataflow, configuration/state, deploy targets, and
   testing notes. This is now the canonical "how does this work" document.
-- `CONTRIBUTING.md` — branching model (`JIT` working branch), Conventional
-  Commits policy, PR checklist, Python / Playwright / frontend / shell
-  coding standards, pre-commit + TruffleHog guidance.
+- `CONTRIBUTING.md` — branching model (`v7` working branch; `JIT` retired,
+  history preserved on `jit-backup-2026-04-26`), Conventional Commits
+  policy, PR checklist, Python / Playwright / frontend / shell coding
+  standards, pre-commit + TruffleHog guidance.
 - `SECURITY.md` — supported versions, secret inventory, exposure response
   runbook (rotate first, fix repo second), CI scanning notes, network
   exposure constraints, contributor defense-in-depth checklist.
