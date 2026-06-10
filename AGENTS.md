@@ -5,8 +5,8 @@
 - For matching/automation logic, prefers strict primary matching first, then explicit fallback behavior.
 - Prefers preserving the existing local interactive workflow (`./start_all.sh`) over Docker-first operation.
 - Wants queue indicators to reflect current-run remaining citations rather than lifetime totals.
-- For Esploro taxonomy, classify coverage of a research output as `Media Mention` (not `Book`).
 - For Esploro Playwright capture, start from the exact Esploro login URL and leave final submit/save clicks to the user when requested.
+- Prefers fully persistent execution (keep going end-to-end until done) instead of stopping at partial progress.
 
 ## Learned Workspace Facts
 - Primary workspace repo is `/Users/suhaas/Documents/Developer/ExLibris-Automator`.
@@ -16,3 +16,4 @@
 - `scripts/ensure_python_venv.sh` bootstraps `.venv` and Python dependencies for `start_all.sh`, `start_smart_batch.sh`, and `run_standalone.command` without requiring `.env`.
 - Parent transcript files for continual learning live under `/Users/suhaas/.cursor/projects/Users-suhaas-Documents-Developer-ExLibris-Automator/agent-transcripts`.
 - User-facing app branding is `ExLibris Automator`.
+- `run_standalone.command` conditionally bootstraps frontend assets by installing npm deps and running `npm run build:css` when `static/css/output.css` is missing.

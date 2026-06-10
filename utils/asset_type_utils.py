@@ -25,7 +25,6 @@ VALID_CONFIG_MODES = {
     "proceedings",
     "abstract",
     "technical_documentation",
-    "ad_media_mention",
 }
 
 # Mapping from OpenAI parser asset types to config modes
@@ -37,7 +36,6 @@ ASSET_TYPE_TO_CONFIG_MODE = {
     "book_chapter": "book_chapter",
     "abstract": "abstract",
     "technical_documentation": "technical_documentation",
-    "ad_media_mention": "ad_media_mention",
     "other": "presentation"  # Default fallback
 }
 
@@ -51,7 +49,6 @@ CONFIG_MODE_TO_ASSET_TYPE = {
     "book_chapter": "book_chapter",
     "abstract": "abstract",
     "technical_documentation": "technical_documentation",
-    "ad_media_mention": "ad_media_mention",
 }
 
 
@@ -166,13 +163,6 @@ def normalize_config_mode(mode: str) -> str:
         "documentation": "technical_documentation",
         "whitepaper": "technical_documentation",
         "white paper": "technical_documentation",
-
-        # Ad media mention variants
-        "ad_media_mention": "ad_media_mention",
-        "ad media mention": "ad_media_mention",
-        "media mention": "ad_media_mention",
-        "ad mention": "ad_media_mention",
-        "press mention": "ad_media_mention",
     }
     normalized = mode_map.get(mode_lower, "auto")
     return normalized

@@ -312,9 +312,9 @@ async def on_message(message):
 
         # Resolve asset type by precedence: explicit tag > config override > auto-detect
         current_asset_mode = config.get('asset_mode', 'auto')
-        if forced_type in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation", "ad_media_mention"):
+        if forced_type in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation"):
             asset_type = forced_type
-        elif current_asset_mode in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation", "ad_media_mention"):
+        elif current_asset_mode in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation"):
             asset_type = current_asset_mode
         else:
             # Auto-detect poster keywords if no overrides
@@ -336,8 +336,6 @@ async def on_message(message):
             asset_display = "Abstract"
         elif asset_type == "technical_documentation":
             asset_display = "Technical Documentation"
-        elif asset_type == "ad_media_mention":
-            asset_display = "Ad Media Mention"
         else:
             asset_display = "Conference Presentation"
 
@@ -536,8 +534,8 @@ async def _cmd_set_type(message, arg: str) -> None:
         if normalized_arg in ('proceeding', 'conference_proceeding', 'conference_proceedings'):
             normalized_arg = 'proceedings'
 
-        if normalized_arg not in ('auto', 'presentation', 'poster', 'book_chapter', 'journal_article', 'proceedings', 'abstract', 'technical_documentation', 'ad_media_mention'):
-            await message.reply("❌ Type must be one of: auto | presentation | poster | book_chapter | journal_article | proceedings | abstract | technical_documentation | ad_media_mention | reset")
+        if normalized_arg not in ('auto', 'presentation', 'poster', 'book_chapter', 'journal_article', 'proceedings', 'abstract', 'technical_documentation'):
+            await message.reply("❌ Type must be one of: auto | presentation | poster | book_chapter | journal_article | proceedings | abstract | technical_documentation | reset")
             return
 
         config['asset_mode'] = normalized_arg
@@ -563,7 +561,7 @@ async def _cmd_help(message) -> None:
         "`!stats` - Show queue and processing stats\n"
         "`!set researcher \"Last, First\"` - Set default researcher\n"
         "`!set researcher reset` - Reset researcher to default\n"
-        "`!set type presentation|poster|book_chapter|journal_article|proceedings|abstract|technical_documentation|ad_media_mention|auto` - Set asset type mode\n"
+        "`!set type presentation|poster|book_chapter|journal_article|proceedings|abstract|technical_documentation|auto` - Set asset type mode\n"
         "`!set type reset` - Reset type mode to auto\n\n"
         "**Workflow:**\n"
         "1. Send citations (they'll be auto-queued)\n"
@@ -670,9 +668,9 @@ async def _cmd_add(message, content: str, channel_id: int) -> None:
     citation_text = re.sub(r"\(\s*pos\s*\)", "", citation_text, flags=re.I)
 
     # Resolve type
-    if forced_type in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation", "ad_media_mention"):
+    if forced_type in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation"):
         asset_type = forced_type
-    elif config.get('asset_mode') in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation", "ad_media_mention"):
+    elif config.get('asset_mode') in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation"):
         asset_type = config.get('asset_mode')
     else:
         asset_type = "poster" if ('poster presentation' in citation_lower or 'poster' in citation_lower or '(pos)' in citation_lower or '--pos' in citation_lower) else "presentation"
@@ -953,7 +951,6 @@ async def slash_skip(interaction: discord.Interaction):
     app_commands.Choice(name="Proceedings", value="proceedings"),
     app_commands.Choice(name="Abstract", value="abstract"),
     app_commands.Choice(name="Technical Documentation", value="technical_documentation"),
-    app_commands.Choice(name="Ad Media Mention", value="ad_media_mention"),
     app_commands.Choice(name="Reset", value="reset"),
 ])
 async def slash_set_type(interaction: discord.Interaction, mode: app_commands.Choice[str]):
@@ -1078,7 +1075,6 @@ async def slash_set_researcher_dropdown(interaction: discord.Interaction):
     app_commands.Choice(name="Proceedings", value="proceedings"),
     app_commands.Choice(name="Abstract", value="abstract"),
     app_commands.Choice(name="Technical Documentation", value="technical_documentation"),
-    app_commands.Choice(name="Ad Media Mention", value="ad_media_mention"),
 ])
 async def slash_add(interaction: discord.Interaction, text: str, type_mode: Optional[app_commands.Choice[str]] = None):
     channel_id = interaction.channel.id
@@ -1088,12 +1084,12 @@ async def slash_add(interaction: discord.Interaction, text: str, type_mode: Opti
         await interaction.response.send_message("❌ Provide citation text")
         return
     forced_type = None
-    if type_mode and type_mode.value in ("presentation", "poster", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation", "ad_media_mention"):
+    if type_mode and type_mode.value in ("presentation", "poster", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation"):
         forced_type = type_mode.value
     citation_lower = citation_text.lower()
     if forced_type:
         asset_type = forced_type
-    elif config.get('asset_mode') in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation", "ad_media_mention"):
+    elif config.get('asset_mode') in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation"):
         asset_type = config.get('asset_mode')
     else:
         asset_type = "poster" if ('poster presentation' in citation_lower or 'poster' in citation_lower or '(pos)' in citation_lower or '--pos' in citation_lower) else "presentation"
@@ -1542,9 +1538,9 @@ async def add_citation_via_gui(channel_id: int, citation_text: str) -> dict:
 
         # Resolve asset type
         current_asset_mode = config.get('asset_mode', 'auto')
-        if forced_type in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation", "ad_media_mention"):
+        if forced_type in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation"):
             asset_type = forced_type
-        elif current_asset_mode in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation", "ad_media_mention"):
+        elif current_asset_mode in ("poster", "presentation", "book_chapter", "journal_article", "proceedings", "abstract", "technical_documentation"):
             asset_type = current_asset_mode
         else:
             asset_type = "poster" if ('poster presentation' in citation_lower or 'poster' in citation_lower or '(pos)' in citation_lower or '--pos' in citation_lower) else "presentation"

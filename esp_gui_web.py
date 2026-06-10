@@ -71,6 +71,8 @@ def split_citation_blocks(text: str) -> list[str]:
     Rules:
     - Blank lines separate citations (paragraph blocks).
     - Single wrapped newlines within a paragraph are preserved as one citation.
+    - If every non-empty single line looks like a full citation (long enough),
+      treat each line as its own citation.
     """
     raw = (text or "").strip()
     if not raw:
@@ -81,7 +83,15 @@ def split_citation_blocks(text: str) -> list[str]:
     if len(blocks) > 1:
         return [' '.join(b.split()) for b in blocks if b.strip()]
 
-    # No blank-line delimiters: treat as one citation, normalize whitespace.
+    # No blank-line delimiters. Distinguish wrapped text vs one-citation-per-line.
+    if "\n" in raw:
+        line_candidates = [ln.strip() for ln in raw.splitlines() if ln.strip()]
+        # Match the long-standing queueing behavior: if each line is substantial,
+        # interpret newline-separated lines as separate citations.
+        if len(line_candidates) > 1 and all(len(ln) > 30 for ln in line_candidates):
+            return [' '.join(ln.split()) for ln in line_candidates]
+
+    # Otherwise treat as one wrapped citation and normalize whitespace.
     return [' '.join(raw.split())]
 
 class StandaloneManager:

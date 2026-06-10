@@ -267,7 +267,7 @@ def process_citation(page, citation_data: Dict[str, str], pause_after: bool = Tr
         page.wait_for_timeout(1000)
     page.get_by_role('textbox', name='Researcher').click(timeout=5000)
     page.get_by_role('textbox', name='Researcher').fill(researcher, timeout=5000)
-    page.get_by_text(researcher).click(timeout=5000)
+    page.locator("a.dropdown-item.ui-menu-item-wrapper").filter(has_text=researcher).first.click(timeout=5000)
     LOG.debug(f"Researcher selected: {researcher}")
 
     # Asset Type Selection - Technical Documentation

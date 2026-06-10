@@ -51,6 +51,7 @@ node_modules/
 # IDE files
 .vscode/
 .idea/
+.cursor/
 
 # OS files
 .DS_Store

@@ -1,11 +1,11 @@
 {
-  "default_researcher": "Williams, Brian G",
-  "asset_mode": "ad_media_mention",
+  "default_researcher": "Calabrese, Nicholas M",
+  "asset_mode": "presentation",
   "paused": false,
   "stats": {
-    "enqueued": 1168,
-    "processed": 769,
-    "errors": 28
+    "enqueued": 1184,
+    "processed": 780,
+    "errors": 30
   },
   "dedupe": {
     "seen": {},
@@ -13,9 +13,9 @@
   },
   "additional_topics": {
     "1422406869070254180": [
-      "History Education",
-      "National Security",
-      "Conventional Warfare"
+      "Fish and Fisheries",
+      "Marine and Ocean Sciences",
+      "Oceanography"
     ]
   },
   "auto_fill_authors": true,
@@ -29,7 +29,9 @@
     "Soltanisehat, Leili",
     "Beardsley, Ashley",
     "Buck, John R",
-    "Wang, Cheng"
+    "Wang, Cheng",
+    "Williams, Brian G",
+    "Calabrese, Nicholas M"
   ],
   "auto_restart_interval": 7
 }
