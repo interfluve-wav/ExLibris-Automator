@@ -4,6 +4,19 @@ Copy-paste reference for the most common operations. Full setup:
 [`GETTING_STARTED.md`](GETTING_STARTED.md) · Recovery:
 [`OPERATIONS_RUNBOOK.md`](OPERATIONS_RUNBOOK.md)
 
+## Simplest path (Flask only)
+
+You do **not** need Discord, webhooks, or OpenAI to run the app. The
+minimal workflow is:
+
+```bash
+./run_standalone.command    # → http://localhost:8765
+```
+
+Put only `ESPLORO_USERNAME` and `ESPLORO_PASSWORD` in `.env`. Use the web
+UI to paste citations, fill forms, and continue. Discord bot, webhook
+logging, and `./start_all.sh` are optional extras.
+
 ---
 
 ## First-time setup (macOS)
@@ -26,7 +39,10 @@ cp docs/ENV_EXAMPLE.md .env
 
 ## Run the app
 
-### Standalone (GUI only — recommended)
+### Standalone Flask web app (recommended — simplest)
+
+This is the default way to run ExLibris Automator. No Discord token, no
+webhooks, no bot setup.
 
 ```bash
 cd /path/to/ExLibris-Automator
@@ -35,7 +51,9 @@ cd /path/to/ExLibris-Automator
 
 Open **http://localhost:8765**
 
-### Full stack (Discord + GUI)
+### Optional: full stack (Discord + Flask GUI)
+
+Only use this if you want citations queued from Discord **and** the web UI.
 
 ```bash
 cd /path/to/ExLibris-Automator
@@ -44,7 +62,7 @@ cd /path/to/ExLibris-Automator
 
 Requires `DISCORD_BOT_TOKEN` in `.env`. UI: **http://localhost:8765**
 
-### Discord bot only
+### Optional: Discord bot only (no Flask UI)
 
 ```bash
 ./start_smart_batch.sh

@@ -12,6 +12,24 @@ operator.
 > Working branch: **`v7`**. See [`CONTRIBUTING.md`](CONTRIBUTING.md) and
 > [`SECURITY.md`](SECURITY.md) before contributing.
 
+### Simplest way to run
+
+The **Flask web app in standalone mode** is all you need for day-to-day use.
+Double-click `run_standalone.command` (or run it from the terminal) and open
+**http://localhost:8765**. Paste citations, click Fill, review in Chromium,
+save in Esploro, continue.
+
+Everything else is **optional**:
+
+| Optional | Purpose |
+|---|---|
+| Discord bot | Queue citations from a Discord channel instead of the web UI |
+| OpenAI API key | GPT parsing (manual parsers work without it) |
+| Discord webhooks / email | Notification hooks — not required for core workflow |
+| `./start_all.sh` | Runs Discord + Flask together; only if you want both |
+
+**Minimum `.env` for standalone:** `ESPLORO_USERNAME` and `ESPLORO_PASSWORD` only.
+
 ---
 
 ## Features
@@ -74,31 +92,34 @@ cp docs/ENV_EXAMPLE.md .env   # edit: ESPLORO_USERNAME, ESPLORO_PASSWORD
 
 ### Environment Variables
 
-Set these in `.env` or as environment/Replit secrets (never hard-code credentials):
+Set these in `.env` (never hard-code credentials). For **standalone Flask
+mode**, only the first two rows are required — everything else is optional.
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `ESPLORO_USERNAME` | Yes | Esploro login username |
-| `ESPLORO_PASSWORD` | Yes | Esploro login password |
-| `OPENAI_API_KEY` | No | Enables AI citation parsing (falls back to regex parser if unset) |
-| `OPENAI_MODEL` | No | Model for parsing (default: `gpt-4o-mini`) |
-| `DISCORD_BOT_TOKEN` | No | Required for Discord bot mode |
-| `CITATION_CHANNEL_ID` | No | Discord channel ID for bot mode |
-| `DEFAULT_RESEARCHER` | No | Default researcher name (defaults to "Scarano, Frank J") |
-| `DISCORD_GUILD_ID` | No | Discord guild/server ID |
-| `BOT_CONFIG_PATH` | No | Path to bot_config.json |
-| `LOG_LEVEL` | No | Logging verbosity |
+| Variable | Standalone | Description |
+|----------|------------|-------------|
+| `ESPLORO_USERNAME` | **Required** | Esploro login username |
+| `ESPLORO_PASSWORD` | **Required** | Esploro login password |
+| `OPENAI_API_KEY` | Optional | GPT parsing; manual parsers work without it |
+| `OPENAI_MODEL` | Optional | Model for parsing (default: `gpt-4o-mini`) |
+| `DISCORD_BOT_TOKEN` | Optional | Only for Discord bot / `start_all.sh` |
+| `CITATION_CHANNEL_ID` | Optional | Discord channel (bot mode only) |
+| `DISCORD_GUILD_ID` | Optional | Speeds slash-command sync (bot mode) |
+| `DISCORD_WEBHOOK_URL` | Optional | Webhook logging/notifications — not wired in all setups |
+| `NOTIFICATION_EMAIL` | Optional | Email notifications — not wired in all setups |
+| `DEFAULT_RESEARCHER` | Optional | Default researcher (defaults to "Scarano, Frank J") |
+| `BOT_CONFIG_PATH` | Optional | Path to `bot_config.json` |
+| `LOG_LEVEL` | Optional | Logging verbosity |
 
 ### Running
 
-**Standalone mode** (no Discord bot required — recommended):
+**Standalone Flask web app** (simplest — no Discord, no webhooks):
 
 ```bash
 ./run_standalone.command
 # or: .venv/bin/python esp_gui_web.py --standalone
 ```
 
-**With Discord bot**:
+**With Discord bot** (optional — only if you want Discord + Flask together):
 
 ```bash
 ./start_all.sh
@@ -106,6 +127,8 @@ Set these in `.env` or as environment/Replit secrets (never hard-code credential
 
 Web UI: **http://localhost:8765** for both modes (default port). On macOS,
 avoid port 5000 — it is often occupied by Apple AirTunes.
+
+Most operators only need `./run_standalone.command` and never touch Discord.
 
 ---
 

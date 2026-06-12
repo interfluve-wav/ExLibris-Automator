@@ -2,8 +2,12 @@
 
 Copy these into a `.env` file at the project root. **Never commit `.env`.**
 
+**Simplest setup (Flask standalone via `run_standalone.command`):** you only
+need `ESPLORO_USERNAME` and `ESPLORO_PASSWORD`. Discord bot tokens, webhook
+URLs, OpenAI keys, and email notifications are all optional.
+
 ```bash
-# ── Required for Esploro automation ──────────────────────────────────
+# ── Required for standalone Flask web app ────────────────────────────
 ESPLORO_USERNAME=
 ESPLORO_PASSWORD=
 
@@ -29,9 +33,9 @@ ESPLORO_PASSWORD=
 # FLASK_HOST=127.0.0.1
 # NO_OPEN_BROWSER=1
 
-# ── Optional notifications (not wired in all deployments) ──────────
-# DISCORD_WEBHOOK_URL=
-# NOTIFICATION_EMAIL=
+# ── Optional notifications (not required; not wired in all deployments) ─
+# DISCORD_WEBHOOK_URL=       # webhook logging — optional
+# NOTIFICATION_EMAIL=        # email alerts — optional
 ```
 
 ## Variable reference

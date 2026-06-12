@@ -2,14 +2,16 @@
 
 Day-to-day operation, health checks, and safe recovery for **ExLibris Automator**.
 
-**Branch:** `v7` (working branch) · **Primary entry points:**
-`./run_standalone.command` (GUI-only) · `./start_all.sh` (full stack)
+**Branch:** `v7` (working branch)
+
+**Simplest way to run:** `./run_standalone.command` — Flask web app only.
+Discord bot, webhooks, and `./start_all.sh` are optional.
 
 ---
 
 ## 1. Standard startup
 
-### Standalone (no Discord)
+### Standalone Flask web app (recommended)
 
 ```bash
 ./run_standalone.command
@@ -17,7 +19,10 @@ Day-to-day operation, health checks, and safe recovery for **ExLibris Automator*
 
 Expected: Flask UI at **http://localhost:8765**, browser may auto-open.
 
-### Full stack (Discord + Flask)
+Requires only `ESPLORO_USERNAME` + `ESPLORO_PASSWORD` in `.env`. No Discord
+token or webhook configuration needed.
+
+### Optional: full stack (Discord + Flask)
 
 ```bash
 ./start_all.sh

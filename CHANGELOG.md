@@ -13,6 +13,23 @@ _Nothing yet._
 
 ---
 
+## [1.0.2] — 2026-05-11
+
+Clarify that the **Flask standalone web app** is the simplest and recommended
+way to run the tool; Discord bot, webhooks, OpenAI, and email notifications
+are all optional.
+
+### Changed
+- `README.md` — "Simplest way to run" callout; env table groups optional
+  integrations; standalone emphasized over `start_all.sh`.
+- `docs/QUICKSTART.md` — Flask-only quick path at top; Discord/bot modes
+  labeled optional.
+- `docs/GETTING_STARTED.md` — standalone Flask as default run mode.
+- `docs/ENV_EXAMPLE.md` — minimum `.env` is two Esploro credentials only.
+- `docs/OPERATIONS_RUNBOOK.md` — standalone Flask as recommended startup.
+
+---
+
 ## [1.0.1] — 2026-05-11
 
 Quickstart commands, repository audit, and dependency hygiene.
@@ -117,7 +134,8 @@ First documented release on the `JIT` branch (now retired).
 - Initial sanitized import: Flask web UI, Discord bot, Playwright worker,
   citation parser (OpenAI + regex fallback), seven asset types.
 
-[Unreleased]: https://github.com/interfluve-wav/ExLibris-Automator/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/interfluve-wav/ExLibris-Automator/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/interfluve-wav/ExLibris-Automator/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/interfluve-wav/ExLibris-Automator/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/interfluve-wav/ExLibris-Automator/compare/v0.3.0...v1.0.0
 [0.3.0]: https://github.com/interfluve-wav/ExLibris-Automator/compare/v0.2.0...v0.3.0

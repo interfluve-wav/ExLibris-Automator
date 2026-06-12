@@ -70,7 +70,11 @@ Never commit `.env`. See [`../SECURITY.md`](../SECURITY.md).
 
 ## 4. Choose a run mode
 
-### A. Standalone (recommended — no Discord)
+**Start here:** the Flask web app alone is the simplest and recommended path.
+Discord, webhooks, OpenAI, and email notifications are all optional — you can
+ignore them entirely.
+
+### A. Standalone Flask web app (recommended)
 
 Double-click **`run_standalone.command`** or:
 
@@ -79,25 +83,29 @@ Double-click **`run_standalone.command`** or:
 ```
 
 - Web UI: **http://localhost:8765**
-- No Discord bot required
+- **Only requires** `ESPLORO_USERNAME` + `ESPLORO_PASSWORD` in `.env`
+- No Discord bot, no webhooks, no `DISCORD_BOT_TOKEN`
 - `ESP_STANDALONE=1` is set automatically
 
-### B. Full stack (Discord + Flask UI)
+This is how most operators run the tool day-to-day.
 
-Requires a configured `.env` with `DISCORD_BOT_TOKEN`:
+### B. Full stack — optional (Discord + Flask UI)
+
+Only if you also want to queue citations from a Discord channel:
 
 ```bash
 ./start_all.sh
 ```
 
-- Web UI: **http://localhost:8765**
-- Discord bot + Flask + worker coordination
+Requires `DISCORD_BOT_TOKEN` (and usually `CITATION_CHANNEL_ID`) in `.env`.
 
-### C. Discord bot only
+### C. Discord bot only — optional
 
 ```bash
 ./start_smart_batch.sh
 ```
+
+No Flask UI — Discord commands only.
 
 ---
 
