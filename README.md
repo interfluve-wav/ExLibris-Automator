@@ -54,6 +54,18 @@ state), see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Quick Start
 
+> **Copy-paste commands:** [`docs/QUICKSTART.md`](docs/QUICKSTART.md)
+
+```bash
+git clone git@github.com:interfluve-wav/ExLibris-Automator.git
+cd ExLibris-Automator && git checkout v7
+bash scripts/ensure_python_venv.sh
+npm install && npm run build:css
+.venv/bin/python -m playwright install chromium
+cp docs/ENV_EXAMPLE.md .env   # edit: ESPLORO_USERNAME, ESPLORO_PASSWORD
+./run_standalone.command      # → http://localhost:8765
+```
+
 ### Prerequisites
 
 - Python **3.12** (pinned in `.python-version`; minimum 3.10)
@@ -334,7 +346,9 @@ Citation processing rules: keyword mappings, asset type detection patterns, and 
 - [`CHANGELOG.md`](CHANGELOG.md) — Version history and release notes
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — Branching, commit style, PR checklist, coding standards
 - [`SECURITY.md`](SECURITY.md) — Secret handling, CI scanning, vulnerability reporting
+- [`docs/QUICKSTART.md`](docs/QUICKSTART.md) — Copy-paste commands (setup, run, health, recovery)
 - [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) — Step-by-step install and first citation
+- [`docs/AUDIT.md`](docs/AUDIT.md) — Latest repository health audit
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Authoritative stack, process model, module map, dataflow
 - [`docs/INDEX.md`](docs/INDEX.md) — Full documentation directory
 - [`docs/SMART_BATCH_GUIDE.md`](docs/SMART_BATCH_GUIDE.md) — Daily operator workflow

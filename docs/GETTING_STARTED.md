@@ -1,8 +1,12 @@
 # Getting Started
 
 Step-by-step setup for **ExLibris Automator** on macOS (the supported daily-driver
-environment). For architecture detail see [`ARCHITECTURE.md`](ARCHITECTURE.md);
-for day-to-day operation see [`OPERATIONS_RUNBOOK.md`](OPERATIONS_RUNBOOK.md).
+environment).
+
+**Just want commands?** → [`QUICKSTART.md`](QUICKSTART.md)
+
+For architecture detail see [`ARCHITECTURE.md`](ARCHITECTURE.md); for day-to-day
+operation see [`OPERATIONS_RUNBOOK.md`](OPERATIONS_RUNBOOK.md).
 
 ---
 

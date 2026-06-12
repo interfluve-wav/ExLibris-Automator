@@ -13,6 +13,30 @@ _Nothing yet._
 
 ---
 
+## [1.0.1] — 2026-05-11
+
+Quickstart commands, repository audit, and dependency hygiene.
+
+### Added
+- **`docs/QUICKSTART.md`** — copy-paste command reference: first-time setup,
+  standalone/full-stack launch, daily workflow, health checks, recovery,
+  git workflow, smoke tests.
+- **`docs/AUDIT.md`** — 2026-05-11 health audit (imports, compile, launchers,
+  API health, parser chain, selector fix verification).
+
+### Changed
+- **`README.md`** — prominent quickstart command block + links to
+  `QUICKSTART.md` and `AUDIT.md`.
+- **`docs/GETTING_STARTED.md`**, **`docs/INDEX.md`** — cross-links to
+  quickstart and audit docs.
+
+### Fixed
+- **`requirements.txt`** — removed duplicate unpinned package entries (lines
+  13–26) that could cause version drift on fresh installs; removed erroneous
+  `docx` alias (use `python-docx` only).
+
+---
+
 ## [1.0.0] — 2026-05-11
 
 First stable documentation release on the **`v7`** working branch. Consolidates
@@ -93,7 +117,8 @@ First documented release on the `JIT` branch (now retired).
 - Initial sanitized import: Flask web UI, Discord bot, Playwright worker,
   citation parser (OpenAI + regex fallback), seven asset types.
 
-[Unreleased]: https://github.com/interfluve-wav/ExLibris-Automator/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/interfluve-wav/ExLibris-Automator/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/interfluve-wav/ExLibris-Automator/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/interfluve-wav/ExLibris-Automator/compare/v0.3.0...v1.0.0
 [0.3.0]: https://github.com/interfluve-wav/ExLibris-Automator/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/interfluve-wav/ExLibris-Automator/releases/tag/v0.2.0

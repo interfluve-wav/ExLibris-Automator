@@ -4,7 +4,7 @@
   "paused": false,
   "stats": {
     "enqueued": 1184,
-    "processed": 780,
+    "processed": 781,
     "errors": 30
   },
   "dedupe": {

@@ -11,7 +11,9 @@ Canonical map of every document in this repository, grouped by audience.
 | Document | Audience | What it covers |
 |---|---|---|
 | [`../README.md`](../README.md) | Everyone | Overview, tech stack, quick start, API summary |
+| [`QUICKSTART.md`](QUICKSTART.md) | Everyone | Copy-paste setup, run, health, recovery commands |
 | [`GETTING_STARTED.md`](GETTING_STARTED.md) | New operators | Step-by-step install, configure, first citation |
+| [`AUDIT.md`](AUDIT.md) | Maintainers | Latest repository health audit |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Developers | Stack, process model, module map, dataflow |
 | [`SMART_BATCH_GUIDE.md`](SMART_BATCH_GUIDE.md) | Operators | Daily Discord batch workflow |
 
