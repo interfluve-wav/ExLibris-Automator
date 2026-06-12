@@ -1,89 +1,185 @@
 # Operations Runbook
 
-This runbook covers day-to-day operation, health checks, and safe recovery steps for ExLibris Automator.
+Day-to-day operation, health checks, and safe recovery for **ExLibris Automator**.
 
-## 1) Standard Startup
+**Branch:** `v7` (working branch) · **Primary entry points:**
+`./run_standalone.command` (GUI-only) · `./start_all.sh` (full stack)
+
+---
+
+## 1. Standard startup
+
+### Standalone (no Discord)
+
+```bash
+./run_standalone.command
+```
+
+Expected: Flask UI at **http://localhost:8765**, browser may auto-open.
+
+### Full stack (Discord + Flask)
 
 ```bash
 ./start_all.sh
 ```
 
-Expected result:
-- Discord bot running
-- Flask GUI running on `http://localhost:8765`
+Expected:
+- Discord bot running (`logs/discord_bot.log`)
+- Flask GUI at **http://localhost:8765** (`logs/flask_gui.log`)
+- Worker spawned on first fill
 
-## 2) Pre-Flight Checklist
+> **Port note:** Default is **8765**, not 5000. On macOS, port 5000 is often
+> occupied by Apple AirTunes. Use `--port` only if you have a specific reason.
 
-- `.env` exists and required variables are set:
-  - `OPENAI_API_KEY`
-  - `ESPLORO_USERNAME`
-  - `ESPLORO_PASSWORD`
-  - `DISCORD_BOT_TOKEN`
-- Python environment is activated.
-- Playwright Chromium is installed.
+---
 
-## 3) Runtime Health Checks
+## 2. Pre-flight checklist
 
-Use these to verify service health quickly:
+| Check | Standalone | Full stack |
+|---|---|---|
+| `.venv` exists | auto via launcher | auto via launcher |
+| `ESPLORO_USERNAME` / `ESPLORO_PASSWORD` in `.env` | required | required |
+| `DISCORD_BOT_TOKEN` in `.env` | not needed | required |
+| `static/css/output.css` exists | auto-built if missing | auto-built if missing |
+| Playwright Chromium installed | `playwright install chromium` | same |
+| `OPENAI_API_KEY` | optional (manual parser works) | optional |
+
+---
+
+## 3. Runtime health checks
+
+### Web UI
 
 ```bash
-tail -f logs/discord_bot.log
-tail -f logs/flask_gui.log
+curl -sI http://127.0.0.1:8765/ | head -n 1
+curl -s http://127.0.0.1:8765/api/status | python3 -m json.tool
 ```
 
-Check that:
-- The bot is connected and accepting commands.
-- The Flask UI is serving status updates.
-- Worker transitions status through `processing` to `completed` (or `failed` with error).
+Healthy `/api/status` fields:
+- `status`: `idle`, `processing`, or `waiting`
+- `assetMode`: one of the supported config modes (not `ad_media_mention`)
+- `queueSize`: current-run remaining count
 
-## 4) Queue Behavior Expectations
+### Logs
 
-- Queue count should reflect current run remaining citations in UI.
-- As citations are filled, queue count should decrement.
-- Historical `enqueued/processed` stats may remain cumulative.
+```bash
+tail -f logs/flask_gui.log          # full stack
+tail -f logs/discord_bot.log        # full stack only
+```
 
-## 5) Common Recovery Actions
+### Processes
 
-### Bot not responding
-1. Stop services (`Ctrl+C` in the `start_all.sh` terminal).
-2. Restart with `./start_all.sh`.
-3. Confirm `DISCORD_BOT_TOKEN` and `CITATION_CHANNEL_ID`.
+```bash
+pgrep -fl "esp_gui_web.py|automation.worker|discord_bot_batch_smart"
+```
+
+### Worker status file
+
+```bash
+cat citation_status_*.json | python3 -m json.tool
+```
+
+States: `processing` → `completed` or `failed` (with `error` field).
+
+---
+
+## 4. Queue behavior
+
+- **Queue count in the UI** reflects **current-run remaining** citations, not
+  lifetime totals.
+- `bot_config.json` → `stats.enqueued/processed/errors` are **cumulative**
+  counters across all sessions.
+- Citations split on blank lines; if every line is >30 chars with no blank
+  lines, each line becomes its own citation (`/api/add` heuristic).
+
+---
+
+## 5. Parser expectations
+
+The worker uses: **OpenAI → manual asset parser → minimal fallback**.
+
+Operators commonly run with **manual parsers only** (no OpenAI quota or key).
+Worker logs will show `Parser path: manual` — this is expected.
+
+---
+
+## 6. Common recovery actions
+
+### Fill failed with Playwright strict-mode / locator error
+
+1. Restart the worker to pick up latest code:
+   ```bash
+   pkill -f "automation.worker"
+   ```
+2. Trigger fill again from the UI — Flask spawns a fresh worker.
+3. Or wait for `auto_restart_interval` (default 7 citations) to rotate it.
+
+### Bot not responding (full stack)
+
+1. `Ctrl+C` in the `start_all.sh` terminal.
+2. `./start_all.sh`
+3. Verify `DISCORD_BOT_TOKEN` and `CITATION_CHANNEL_ID` in `.env`.
 
 ### Fill stuck in "processing"
-1. Check `logs/discord_bot.log` and `logs/flask_gui.log`.
-2. Inspect latest worker status file:
-   - `citation_status_<channel_id>.json`
-3. If status is `failed`, review error and retry citation.
+
+1. Check `citation_status_<channel>.json` for `failed` + `error`.
+2. Tail `logs/flask_gui.log`.
+3. Use **Skip** in the UI or `/skip` in Discord.
+4. If browser is wedged: **Close** in UI, then restart fill.
 
 ### UI queue count looks wrong
-1. Refresh web UI.
-2. Verify queue via UI `View Queue` action.
-3. Restart stack if stale status files are suspected.
 
-## 6) Safe Shutdown
+1. Hard-refresh the browser tab.
+2. `GET /api/queue` or use **View Queue** in the UI.
+3. Restart `./run_standalone.command` if status files are stale.
 
-Preferred:
-- Stop with `Ctrl+C` in the terminal running `start_all.sh`.
+### Worker has old code after `git pull`
 
-This shuts down:
-- Discord bot process
-- Flask process
-- Associated worker processes started by this session
+```bash
+pkill -f "automation.worker"
+# next fill spawns fresh worker with updated modules
+```
 
-## 7) File-Based IPC Reference
+---
 
-Key files:
-- `citation_control_<channel>.json`
-- `citation_status_<channel>.json`
-- `gui_completion_status.json`
+## 7. Safe shutdown
 
-Worker status includes:
-- `last_written_id`
-- `state` (`processing`, `completed`, `failed`)
-- `error` (present on failed)
+**Preferred:** `Ctrl+C` in the terminal running the launcher.
 
-## 8) Change Management Notes
+`run_standalone.command` and `start_all.sh` both trap `EXIT` and kill worker
+processes.
 
-- Keep UI-only requests limited to templates/static behavior.
-- Avoid backend behavior changes unless explicitly requested.
-- Do not hard-code secrets; use `.env` only.
+Manual cleanup if needed:
+
+```bash
+pkill -f "automation.worker"
+pkill -f "esp_gui_web.py"
+pkill -f "discord_bot_batch_smart.py"
+```
+
+---
+
+## 8. File-based IPC (quick reference)
+
+| File | Direction | Purpose |
+|---|---|---|
+| `citation_control_<channel>.json` | UI/bot → worker | Next citation payload |
+| `citation_status_<channel>.json` | worker → UI/bot | `processing` / `completed` / `failed` |
+| `gui_continue.json` | UI → worker | Operator saved; advance queue |
+| `gui_skip.json` | UI → worker | Skip current citation |
+| `gui_pause.json` | UI → worker | Pause loop |
+| `gui_go_home.json` | UI → worker | Navigate Esploro home |
+
+Full contract: [`IPC_PROTOCOL.md`](IPC_PROTOCOL.md).
+
+---
+
+## 9. Change management
+
+- UI-only requests → touch `templates/` and `src/input.css` only; run
+  `npm run build:css`.
+- Automation changes → update the relevant `automation/*_impl.py` **and**
+  verify worker restart picks them up.
+- New asset types → follow the five registration points in
+  [`ARCHITECTURE.md` §3](ARCHITECTURE.md#3-module-map).
+- Never commit `.env`, credentials, or runtime CSV/log artifacts.

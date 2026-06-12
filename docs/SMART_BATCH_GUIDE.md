@@ -13,7 +13,7 @@ Prereqs:
 ### Start the Bot
 
 ```bash
-cd /Users/suhaas/esp (mini)
+cd /path/to/ExLibris-Automator
 ./start_smart_batch.sh
 ```
 

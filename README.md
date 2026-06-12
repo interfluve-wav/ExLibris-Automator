@@ -7,17 +7,17 @@ citation, and a persistent Playwright worker drives Chromium to fill the
 Esploro deposit forms — leaving the final save/submit click to a human
 operator.
 
-> **New here?** Read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the
-> canonical stack and process model. Read [`CONTRIBUTING.md`](CONTRIBUTING.md)
-> before sending a PR. See [`SECURITY.md`](SECURITY.md) before touching
-> anything that handles credentials.
+> **New here?** Start with [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md).
+> For architecture detail see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+> Working branch: **`v7`**. See [`CONTRIBUTING.md`](CONTRIBUTING.md) and
+> [`SECURITY.md`](SECURITY.md) before contributing.
 
 ---
 
 ## Features
 
 - **Web UI** — Flask-based control panel for managing citations, controlling the worker, and monitoring status
-- **AI Citation Parsing** — Parses unstructured citation text into structured metadata using OpenAI (with regex fallback)
+- **Citation Parsing** — OpenAI GPT-4o-mini when available; asset-specific manual parsers are the production fallback
 - **Browser Automation** — Playwright fills Esploro web forms for journals, presentations, posters, proceedings, book chapters, abstracts, and technical documentation
 - **Citation Matcher** — Fuzzy-match interface to compare and deduplicate citations
 - **Discord Integration** — Optional Discord bot for command-driven citation queueing
@@ -79,10 +79,11 @@ Set these in `.env` or as environment/Replit secrets (never hard-code credential
 
 ### Running
 
-**Standalone mode** (no Discord bot required):
+**Standalone mode** (no Discord bot required — recommended):
 
 ```bash
-python esp_gui_web.py --standalone --port 5000
+./run_standalone.command
+# or: .venv/bin/python esp_gui_web.py --standalone
 ```
 
 **With Discord bot**:
@@ -91,7 +92,8 @@ python esp_gui_web.py --standalone --port 5000
 ./start_all.sh
 ```
 
-The web UI will be available at `http://localhost:5000` (standalone) or `http://localhost:8765` (start_all.sh).
+Web UI: **http://localhost:8765** for both modes (default port). On macOS,
+avoid port 5000 — it is often occupied by Apple AirTunes.
 
 ---
 
@@ -156,7 +158,7 @@ The web UI will be available at `http://localhost:5000` (standalone) or `http://
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌────────────────────┐
 │   Web UI (Flask) │────▶│ StandaloneManager │────▶│ Worker (Playwright) │
-│   Port 5000      │     │  Citation Queue   │     │ Browser Automation  │
+│   Port 8765      │     │  Citation Queue   │     │ Browser Automation  │
 └─────────────────┘     └──────────────────┘     └────────────────────┘
         │                        │                         │
         │                        ▼                         ▼
@@ -174,8 +176,8 @@ The web UI will be available at `http://localhost:5000` (standalone) or `http://
 
 ### How It Works
 
-1. **Add citations** — Paste citation text into the web UI (or send via Discord). Multiple citations are split by blank lines.
-2. **Parse** — Each citation is parsed by OpenAI GPT-4o-mini into structured metadata (title, authors, year, DOI, conference name, etc.). Falls back to regex-based parsing if no API key is set.
+1. **Add citations** — Paste into the web UI (or send via Discord). Split on blank lines, or per-line when each line is substantial (>30 chars).
+2. **Parse** — OpenAI when available; otherwise asset-specific manual parsers in `automation/*_impl.py`, then a minimal generic fallback.
 3. **Queue** — Parsed citations are added to an in-memory queue managed by `StandaloneManager`.
 4. **Fill** — The Playwright worker picks the next citation, navigates Esploro, selects the correct asset type, and fills all form fields automatically.
 5. **Review & Save** — The user reviews the filled form in the browser, then clicks "Saved — Continue" in the web UI.
@@ -332,6 +334,7 @@ Citation processing rules: keyword mappings, asset type detection patterns, and 
 - [`CHANGELOG.md`](CHANGELOG.md) — Version history and release notes
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — Branching, commit style, PR checklist, coding standards
 - [`SECURITY.md`](SECURITY.md) — Secret handling, CI scanning, vulnerability reporting
+- [`docs/GETTING_STARTED.md`](docs/GETTING_STARTED.md) — Step-by-step install and first citation
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Authoritative stack, process model, module map, dataflow
 - [`docs/INDEX.md`](docs/INDEX.md) — Full documentation directory
 - [`docs/SMART_BATCH_GUIDE.md`](docs/SMART_BATCH_GUIDE.md) — Daily operator workflow

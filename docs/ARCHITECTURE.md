@@ -3,6 +3,8 @@
 This is the authoritative reference for what runs where, which library does
 what, and how the pieces talk to each other.
 
+**Working branch:** `v7` · **Default web UI port:** `8765`
+
 If a fact in here disagrees with the README quick-start, this document is
 correct — the README is a summary.
 

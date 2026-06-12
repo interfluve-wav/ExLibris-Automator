@@ -1,63 +1,138 @@
-# Esploro Citation Automation – Feature Catalog
+# Features Overview
 
-Comprehensive reference for every feature the system provides across Discord bot orchestration, citation parsing, Playwright automation, and auxiliary tooling.
+Feature catalog across Discord bot, Flask UI, citation parsing, Playwright
+automation, and supporting utilities.
 
-## Core Workflow
-- Discord bot receives citations (pasted text, `/add`, or `!add`) and queues them per channel.
-- Worker process watches control files (e.g., `citation_control_{channel_id}.json`) and keeps a persistent Chromium session alive.
-- Asset-type implementations parse and fill Esploro forms, writing status back to `citation_status_{channel_id}.json`.
-- Users trigger fills via Discord commands or the Mac launcher’s “Fill Next” button; the browser stays open between fills for speed.
+---
 
-## Discord Bot Layer
-- Supports both legacy text commands (`!f`, `!queue`, `!skip`, `!close`, etc.) and slash commands (`/fill`, `/set_type`, `/set_researcher`, `/stats`, `/pause`, `/resume`, `/resync`).
-- Command handlers are modularized via `_cmd_*` functions and a dispatch table for maintainability.
-- Queue management per channel using deques allows pausing/resuming and displaying queues.
-- Writes concise “Field Fill Summary” messages back to Discord after each fill.
-- Watches `fill_next_signal` and `shutdown_signal` control files to integrate with GUI launcher triggers.
-- Bot configuration (`bot_config.json`) persists researcher, asset mode, stats counters, and up to six “Description and Research” topics per channel.
+## Core workflow
 
-## Citation Parsing
-- Primary parser powered by OpenAI (`openai_parser.py`) with configurable `OPENAI_MODEL`.
-- 100-item MD5-hash keyed LRU cache avoids duplicate API calls and accelerates repeated citations.
-- Title correction pipeline with `_correct_title_if_needed()`, `_title_looks_like_authors()`, and `_extract_title_heuristically()` to prevent author names or conference titles being misidentified as citation titles.
-- Fallback manual parser engages automatically on suspicious OpenAI outputs, ensuring robust extraction.
-- Unified JSON schema covers conference presentations, posters, proceedings, journal articles, book chapters, and abstracts.
+1. Operator adds citations (web UI paste, Discord `/add`, or channel paste).
+2. Citations queue per channel (in-memory in standalone; persisted via bot in
+   Discord mode).
+3. Operator triggers fill — worker subprocess starts (or reuses) a Chromium
+   session logged into Esploro.
+4. Parser extracts metadata → asset-type module fills the form.
+5. Operator reviews and saves in the browser, then signals continue.
+6. Worker advances to the next citation.
 
-## Automation Layer (Asset Types)
-- Dedicated implementations for `presentations`, `poster`, `proceedings`, `journal`, `book_chapters`, and `abstract` assets, each exporting `parse_any_citation()` and `process_citation()`.
-- Modules share utilities from `utils/citation_parser_utils.py` (e.g., `extract_year`, `extract_date_range`, `is_author_like`).
-- Playwright-based form filling leverages resilient selectors (`page.get_by_role`, `page.locator`) with retry helpers.
-- Wrapper modules (e.g., `automation/presentations.py`) maintain backward compatibility with legacy imports.
+---
 
-## Worker Layer
-- `automation/worker.py` keeps a single Chromium context open, reducing login overhead.
-- Asset routing uses an O(1) dispatch table keyed by asset type.
-- Structured logging via `utils/logging_utils.py` with `[YYYY-MM-DD HH:MM:SS] [SECTION] [LEVEL] message`.
-- Error handling ensures failed citations still advance the queue by writing status artifacts and preventing infinite retries.
+## Flask web UI
 
-## Configuration & State Management
-- `ConfigManager` caches reads from `bot_config.json` / `citations_config.json` and batches writes with a debounce (0.5 s) for durability.
-- Environment configuration lives in `.env` (template `docs/ENV_EXAMPLE.md`) with required keys: `OPENAI_API_KEY`, `ESPLORO_USERNAME`, `ESPLORO_PASSWORD`, `DISCORD_BOT_TOKEN`, `CITATION_PARSER=openai`.
-- Optional envs: `CITATION_CHANNEL_ID`, `DISCORD_GUILD_ID`, `OPENAI_MODEL`, `DEFAULT_RESEARCHER`, `HEADLESS`, `LOG_LEVEL`.
+- Control panel at `templates/index.html` with Tailwind CSS dark mode
+- REST API for queue, fill, skip, continue, configuration, and status
+- `StandaloneManager` for GUI-only operation (no Discord dependency)
+- Bulk citation splitting: blank lines or substantial per-line pastes
+- File upload intake: PDF, DOCX, XLSX
+- Citation matcher UI with rapidfuzz scoring
+- Keyboard-triggered fill actions
 
-## GUI & Control Utilities
-- `run_esp_app.command` launches a Mac dialog offering “Fill Next” and “Close” buttons that write control files for the bot to consume.
-- `scripts/cleanup_project.sh` tidies generated artifacts and reorganizes directories.
-- `scripts/logs_viewer.py` presents CSV submission logs in a compact CLI table.
+---
 
-## Output & Reporting
-- `citationsPresentations.csv` captures all parsed citation fields for audit trails.
-- `filled_fields_summary.txt` enumerates filled vs. empty Esploro fields across runs.
-- `logs/` directory stores Playwright screenshots and detailed automation traces.
-- Discord summaries highlight each fill’s key metadata without flooding channels.
+## Discord bot
 
-## Performance & Reliability
-- OpenAI response caching plus parser refactors delivered ~40% code reduction and 30–50% faster processing.
-- ConfigManager cuts disk I/O by >10× through aggressive caching and atomic writes.
-- Worker keeps browser sessions alive, yielding faster subsequent fills.
-- Robust retry helpers (`goto_with_retries`) mitigate transient network issues.
+- `discord_bot_batch_smart.py` — slash + text command interface
+- Modular `_cmd_*` handlers with dispatch table
+- Per-channel deques with pause/resume
+- Post-fill summary messages to the channel
+- Watches `fill_next_signal` / `shutdown_signal` for Mac launcher integration
+- Persists config via `bot_config.json` (researcher, asset mode, stats, topics)
 
-## Testing & Benchmarks
-- `python3 test_citations.py` validates parser accuracy across curated citation samples.
-- `tests/performance_tests.py` measures parser latency, cache effectiveness, and config I/O improvements.
-- Asset-specific tests (e.g., `test_proceedings.py`, `test_book_chapter.py`) ensure Playwright logic and parser heuristics stay reliable.
+---
+
+## Citation parsing
+
+| Layer | Module | When used |
+|---|---|---|
+| OpenAI | `openai_parser.py` | `OPENAI_API_KEY` set and quota available |
+| Manual | `automation/*_impl.py` | Primary in many production runs |
+| Minimal | `worker.py` `_minimal_parse_fallback` | Last resort |
+
+- Configurable model (`OPENAI_MODEL`, default `gpt-4o-mini`)
+- 100-item MD5 LRU cache for OpenAI responses
+- Title correction heuristics (`_correct_title_if_needed`, etc.)
+- Unified schema across all seven asset types
+
+---
+
+## Automation (asset types)
+
+| Type | Implementation |
+|---|---|
+| Conference presentation | `presentations_impl.py` |
+| Conference poster | `poster_impl.py` |
+| Conference proceedings | `proceedings_impl.py` |
+| Journal article | `journal_impl.py` |
+| Book chapter | `book_chapters_impl.py` |
+| Abstract | `abstract_impl.py` |
+| Technical documentation | `technical_documentation_impl.py` |
+
+Shared utilities: `utils/citation_parser_utils.py`, `utils/author_automation.py`.
+
+Playwright patterns: `get_by_role`, scoped `locator().filter()`, retry helpers.
+
+---
+
+## Worker
+
+- `automation/worker.py` — subprocess, not a thread
+- `ASSET_TYPE_HANDLERS` dispatch table
+- `_try_parse_with_fallback` chain
+- Structured logging via `utils/logging_utils.py`
+- Status files: `citation_status_<channel>.json`
+- Auto-restart policy for long sessions
+
+---
+
+## Configuration & state
+
+- `.env` — secrets (gitignored); template: [`ENV_EXAMPLE.md`](ENV_EXAMPLE.md)
+- `bot_config.json` — runtime config + cumulative stats
+- `citations_config.json` — parser/detection rules
+- `ConfigManager` — cached reads, debounced atomic writes
+- File-based IPC — see [`IPC_PROTOCOL.md`](IPC_PROTOCOL.md)
+
+---
+
+## Launchers & scripts
+
+| Script | Purpose |
+|---|---|
+| `run_standalone.command` | macOS GUI-only entry |
+| `start_all.sh` | Full local stack |
+| `start_smart_batch.sh` | Discord bot only |
+| `start_desktop.sh` | Xvfb + VNC for headed debugging |
+| `scripts/ensure_python_venv.sh` | `.venv` bootstrap |
+| `scripts/cleanup_project.sh` | Remove generated artifacts |
+
+---
+
+## Output & reporting
+
+- `citationsPresentations.csv` — audit trail
+- `filled_fields_summary.txt` — per-run fill summary
+- Discord channel summaries after each fill
+- `logs/` — bot and Flask process logs
+
+---
+
+## Testing & benchmarks
+
+```bash
+.venv/bin/python test_citations.py
+.venv/bin/python tests/performance_tests.py
+.venv/bin/python test_proceedings.py
+.venv/bin/python test_book_chapter.py
+.venv/bin/python test_tech_doc_parser.py
+```
+
+---
+
+## Reliability features
+
+- Persistent Chromium session (login once per worker lifecycle)
+- Auto-restart interval (configurable, default every 7 citations)
+- Single-instance guard in `start_all.sh` (kills stale processes)
+- Parser fallback chain (never blocks on OpenAI alone)
+- Scoped Playwright selectors (strict-mode safe)

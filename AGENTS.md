@@ -9,7 +9,8 @@
 - Prefers fully persistent execution (keep going end-to-end until done) instead of stopping at partial progress.
 
 ## Learned Workspace Facts
-- Primary workspace repo is `/Users/suhaas/Documents/Developer/ExLibris-Automator`.
+- Primary workspace repo is `/Users/suhaas/Documents/Developer/ExLibris-Automator`; working git branch is `v7` (legacy `JIT` branch retired).
+- Citation parsing commonly runs on manual asset-specific parsers (`automation/*_impl.py`) rather than OpenAI when quota is unavailable.
 - `./start_all.sh` is used to launch both `discord_bot_batch_smart.py` and `esp_gui_web.py` and expects a `.env` file at repo root for the Discord bot; `./run_standalone.command` is the GUI-only entry point.
 - The Flask UI is driven by `templates/index.html`, styled with Tailwind (built CSS at `static/css/output.css`), and supports keyboard-triggered fill actions.
 - Runtime bot/worker coordination relies on file-based IPC (`citation_control_*.json`, `citation_status_*.json`).
